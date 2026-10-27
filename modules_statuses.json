@@ -4,5 +4,6 @@
     "Dashboard": true,
     "Car": true,
     "Order": true,
-    "Inventory": true
+    "Inventory": true,
+    "Control": true
 }

@@ -43,6 +43,25 @@ For local work, set `SMS_ENABLED=false`: nothing is sent and the message, code i
 php artisan tinker --execute="echo Modules\User\Models\User::admin()->value('mobile');"
 ```
 
+## Jocko Control
+
+The shop can report to the central Jocko Control server (online status, version, remote commands). It is optional: with nothing configured the shop runs standalone and the module does nothing.
+
+```dotenv
+JOCKO_CONTROL_URL=https://control.example.com
+JOCKO_CONTROL_TOKEN=...   # shown once when the device is registered in Jocko Control
+```
+
+The token is a secret: keep it in `.env` only and never commit it. In production the URL must be `https://`.
+
+```bash
+php artisan control:status      # check the connection and show how this device is registered
+php artisan control:heartbeat   # what the scheduler runs every minute
+php artisan control:poll        # run queued remote commands now
+```
+
+The scheduler must be running (`composer dev` starts it; in production use cron with `schedule:run`). Remote commands are limited to a fixed allowlist: `check_version`, `collect_diagnostics`, `refresh_config`; `sync_now` reports that event synchronization is not enabled yet. An unreachable server is normal and only logged once per outage.
+
 ## Language
 
 `APP_LOCALE=fa` is the default. English strings live in `resources/lang/en` and `Modules/*/resources/lang/en`; set `APP_LOCALE=en` to use them.
