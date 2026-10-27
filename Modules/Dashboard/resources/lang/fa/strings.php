@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'Jocko Control' => 'جاکو کنترل',
+    'Jocko Control URL' => 'نشانی سرور کنترل',
+    'Jocko Control Token' => 'توکن دستگاه',
+    'Jocko Control Description' => 'اتصال این فروشگاه به جاکو کنترل را تنظیم کنید. توکن دستگاه رمزگذاری می‌شود و پس از ذخیره نمایش داده نمی‌شود.',
+    'Show' => 'نمایش',
+    'Hide' => 'پنهان کردن',
+    'Show Secret' => 'نمایش مقدار محرمانه',
+    'Hide Secret' => 'پنهان کردن مقدار محرمانه',
     'Dashboard' => 'داشبورد',
     'Platform' => 'سکو',
     'Settings' => 'تنظیمات',

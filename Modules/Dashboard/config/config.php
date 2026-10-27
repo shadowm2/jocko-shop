@@ -57,5 +57,20 @@ return [
                 ],
             ],
         ],
+        'jocko_control' => [
+            'label' => 'dashboard::strings.Jocko Control',
+            'fields' => [
+                'url' => [
+                    'label' => 'dashboard::strings.Jocko Control URL',
+                    'config' => 'control.url',
+                    'rules' => 'nullable|url|max:255',
+                ],
+                'token' => [
+                    'label' => 'dashboard::strings.Jocko Control Token',
+                    'secret' => true,
+                    'config' => 'control.token',
+                ],
+            ],
+        ],
     ],
 ];

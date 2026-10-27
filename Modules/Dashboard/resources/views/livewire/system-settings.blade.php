@@ -22,7 +22,7 @@
                     $isSet = in_array("{$group}.{$name}", $stored, true);
                 @endphp
 
-                <flux:field wire:key="setting-{{ $group }}-{{ $name }}">
+                <flux:field wire:key="setting-{{ $group }}-{{ $name }}" x-data="{ visible: false }">
                     <div class="flex items-center justify-between gap-2">
                         <flux:label>{{ __($field['label']) }}</flux:label>
                         @if ($secret)
@@ -51,10 +51,21 @@
                     <flux:input
                         wire:model="values.{{ $group }}.{{ $name }}"
                         :type="$secret ? 'password' : 'text'"
+                        x-bind:type="visible && {{ $secret ? 'true' : 'false' }} ? 'text' : '{{ $secret ? 'password' : 'text' }}'"
                         :placeholder="$secret && $isSet ? '••••••••••••' : ''"
                         autocomplete="off"
                         :dir="$field['dir'] ?? 'ltr'"
                     />
+                    <div class="mt-1 flex justify-end" x-show="{{ $secret ? 'true' : 'false' }}">
+                            <flux:button
+                                type="button"
+                                size="xs"
+                                variant="ghost"
+                                x-on:click="visible = ! visible"
+                                x-text="visible ? @js(__('dashboard::strings.Hide')) : @js(__('dashboard::strings.Show'))"
+                                x-bind:aria-label="visible ? @js(__('dashboard::strings.Hide Secret')) : @js(__('dashboard::strings.Show Secret'))"
+                            />
+                    </div>
                     <flux:error name="values.{{ $group }}.{{ $name }}" />
                 </flux:field>
             @endforeach

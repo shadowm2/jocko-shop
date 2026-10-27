@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'Jocko Control' => 'Jocko Control',
+    'Jocko Control URL' => 'Control server URL',
+    'Jocko Control Token' => 'Device token',
+    'Jocko Control Description' => 'Configure this shop’s connection to Jocko Control. The device token is encrypted and never shown after saving.',
+    'Show' => 'Show',
+    'Hide' => 'Hide',
+    'Show Secret' => 'Show secret',
+    'Hide Secret' => 'Hide secret',
     'Dashboard' => 'Dashboard',
     'Platform' => 'Platform',
     'Settings' => 'Settings',

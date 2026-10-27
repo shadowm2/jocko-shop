@@ -22,6 +22,8 @@ class ControlClient
 {
     public function isConfigured(): bool
     {
+        resolve(\Modules\Dashboard\Services\SettingService::class)->applyToConfig();
+
         return filled(config('control.url')) && filled(config('control.token'));
     }
 

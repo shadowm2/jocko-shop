@@ -480,7 +480,7 @@
                     icon="wrench"
                     :heading="__('dashboard::strings.General')"
                     class="grid first-level"
-                    :expanded="request()->routeIs(['countries.*', 'provinces.*', 'cities.*', 'categories.*', 'system-settings.*'])"
+                    :expanded="request()->routeIs(['countries.*', 'provinces.*', 'cities.*', 'categories.*', 'system-settings.*', 'jocko-control-settings.*'])"
                 >
                     <flux:sidebar.item
                         icon="globe-alt"
@@ -489,6 +489,9 @@
                         wire:navigate
                     >
                         {{ __('dashboard::strings.Countries') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="signal" :href="route('jocko-control-settings.edit')" :current="request()->routeIs('jocko-control-settings.edit')" wire:navigate>
+                        {{ __('dashboard::strings.Jocko Control') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item
                         icon="map-pin"

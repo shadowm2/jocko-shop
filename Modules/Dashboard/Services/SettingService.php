@@ -75,8 +75,11 @@ class SettingService
         $this->values = null;
 
         foreach ($this->fields() as $key => $field) {
-            if (isset($field['config'], $this->all()[$key])) {
-                config([$field['config'] => $this->all()[$key]]);
+            if (isset($field['config'])) {
+                $value = $this->all()[$key] ?? null;
+                if ($value !== null) {
+                    config([$field['config'] => $value]);
+                }
             }
         }
     }

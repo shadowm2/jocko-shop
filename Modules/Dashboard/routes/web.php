@@ -16,11 +16,13 @@ use Modules\Dashboard\Livewire\ProvinceEdit;
 use Modules\Dashboard\Livewire\ProvinceList;
 use Modules\Dashboard\Livewire\Reports;
 use Modules\Dashboard\Livewire\SystemSettings;
+use Modules\Dashboard\Livewire\JockoControlSettings;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/dashboard', Overview::class)->name('dashboard');
     Route::livewire('/reports', Reports::class)->name('reports.index');
     Route::livewire('/system-settings', SystemSettings::class)->name('system-settings.edit');
+    Route::livewire('/settings/jocko-control', JockoControlSettings::class)->name('jocko-control-settings.edit');
 
     Route::prefix('countries')->as('countries.')->group(function () {
         Route::livewire('/list', CountryList::class)->name('index');
