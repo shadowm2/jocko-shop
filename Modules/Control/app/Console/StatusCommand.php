@@ -8,12 +8,13 @@ use Illuminate\Console\Command;
 use Modules\Control\Exceptions\ControlException;
 use Modules\Control\Services\ControlClient;
 use Modules\Control\Services\ControlLink;
+use Modules\Control\Services\DeviceStatus;
 
 #[Signature('control:status')]
 #[Description('Check the connection to Jocko Control and show how this device is registered')]
 class StatusCommand extends Command
 {
-    public function handle(ControlClient $client, ControlLink $link): int
+    public function handle(ControlClient $client, ControlLink $link, DeviceStatus $status): int
     {
         $this->components->twoColumnDetail('URL', (string) (config('control.url') ?: 'not set'));
         $this->components->twoColumnDetail('Token', filled(config('control.token')) ? 'set (hidden)' : 'not set');
@@ -36,6 +37,8 @@ class StatusCommand extends Command
         $this->components->twoColumnDetail('Device', (string) ($device['name'] ?? '?'));
         $this->components->twoColumnDetail('Server time', (string) ($device['server_time'] ?? '?'));
         $this->components->twoColumnDetail('Last successful heartbeat', $link->lastContactAt() ?? 'never');
+
+        $this->components->twoColumnDetail('Events waiting to be sent', (string) ($status->pendingEvents() ?? '?'));
 
         if (($error = $link->lastError()) !== null) {
             $this->components->twoColumnDetail('Last problem', "{$error['code']} since {$error['since']}");

@@ -5,6 +5,7 @@ namespace Modules\Control\Services;
 use Composer\InstalledVersions;
 use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Support\Facades\DB;
+use Modules\Control\Models\OutboxEvent;
 use Throwable;
 
 /**
@@ -13,6 +14,8 @@ use Throwable;
 #[Singleton]
 class DeviceStatus
 {
+    public function __construct(private readonly ControlLink $link) {}
+
     public function appVersion(): string
     {
         if (filled(config('control.app_version'))) {
@@ -58,9 +61,8 @@ class DeviceStatus
     }
 
     /**
-     * The heartbeat body. It deliberately has no `sync` section and no
-     * `pending_events`: this installation does not synchronize events yet, so
-     * it must not claim to.
+     * The heartbeat body. `sync` is only present when a push happened since the
+     * last heartbeat, so Jocko Control never hears an outcome that is not new.
      *
      * @return array<string, mixed>
      */
@@ -73,9 +75,20 @@ class DeviceStatus
             'database_schema_version' => $this->schemaVersion(),
             'local_status' => array_filter([
                 'state' => $databaseOk ? 'idle' : 'error',
+                'pending_events' => $databaseOk ? $this->pendingEvents() : null,
                 'database_ok' => $databaseOk,
                 'disk_free_mb' => $this->diskFreeMb(),
             ], fn (mixed $value) => $value !== null),
+            'sync' => $this->link->pullPushReport(),
         ], fn (mixed $value) => $value !== null);
+    }
+
+    public function pendingEvents(): ?int
+    {
+        try {
+            return OutboxEvent::query()->pending()->count();
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

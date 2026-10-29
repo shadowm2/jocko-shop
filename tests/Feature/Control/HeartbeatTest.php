@@ -15,6 +15,11 @@ beforeEach(function () {
 function fakeControl(int $pending = 0, array $commands = []): void
 {
     Http::fake([
+        '*/sync/events' => fn (Request $request) => Http::response(['data' => [
+            'accepted' => collect($request['events'])->map(fn (array $event, int $index) => ['index' => $index, 'event_id' => $event['event_id']])->all(),
+            'already_accepted' => [],
+            'rejected' => [],
+        ]]),
         '*/device/heartbeat' => Http::response(['data' => ['received_at' => now()->toIso8601String(), 'last_sync_at' => null, 'pending_commands' => $pending]]),
         '*/ack' => Http::response(['data' => ['status' => 'completed', 'already_acknowledged' => false]]),
         '*/device/commands*' => Http::response(['data' => $commands]),
@@ -30,7 +35,7 @@ test('it does nothing and stays quiet when not configured', function () {
     Http::assertNothingSent();
 });
 
-test('the heartbeat reports version, schema and local health but never claims a sync', function () {
+test('the heartbeat reports version, schema, health and queue depth but claims no sync before one happened', function () {
     fakeControl();
 
     $this->artisan('control:heartbeat')->assertSuccessful();
@@ -43,8 +48,8 @@ test('the heartbeat reports version, schema and local health but never claims a 
             && is_string($body['database_schema_version'])
             && $body['local_status']['database_ok'] === true
             && $body['local_status']['state'] === 'idle'
-            && ! array_key_exists('sync', $body)
-            && ! array_key_exists('pending_events', $body['local_status']);
+            && $body['local_status']['pending_events'] === 0
+            && ! array_key_exists('sync', $body);
     });
     expect(resolve(ControlLink::class)->lastContactAt())->not->toBeNull();
 });
@@ -78,14 +83,31 @@ test('commands are not fetched when none are pending', function () {
     Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/device/commands'));
 });
 
-test('sync_now is reported as failed because nothing synchronizes yet', function () {
-    fakeControl(1, [['id' => '22222222-2222-4222-8222-222222222222', 'type' => 'sync_now', 'payload' => ['full' => true]]]);
+test('sync_now pushes the outbox and reports how many events went out', function () {
+    fakeControl(1, [['id' => '22222222-2222-4222-8222-222222222222', 'type' => 'sync_now', 'payload' => []]]);
+    Modules\Inventory\Models\Brand::create(['slug' => 'bosch', 'name' => 'Bosch']);
 
     $this->artisan('control:poll')->assertSuccessful();
 
+    Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/sync/events') && $r['events'][0]['event_type'] === 'brand.created');
     Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/ack')
-        && $r['status'] === 'failed'
-        && str_contains($r['error'], 'not enabled'));
+        && $r['status'] === 'completed'
+        && $r['result']['pushed'] >= 1
+        && $r['result']['remaining'] === 0);
+});
+
+test('sync_now fails with the reason when Jocko Control refuses the events', function () {
+    Http::fake([
+        '*/sync/events' => Http::response(['error' => ['code' => 'shop_suspended', 'message' => 'This shop is suspended.']], 403),
+        '*/device/commands*' => Http::response(['data' => [['id' => '22222222-2222-4222-8222-222222222222', 'type' => 'sync_now', 'payload' => []]]]),
+        '*/ack' => Http::response(['data' => ['status' => 'failed', 'already_acknowledged' => false]]),
+    ]);
+    Modules\Inventory\Models\Brand::create(['slug' => 'bosch', 'name' => 'Bosch']);
+
+    $this->artisan('control:poll')->assertSuccessful();
+
+    Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/ack') && $r['status'] === 'failed' && str_contains($r['error'], 'suspended'));
+    expect(Modules\Control\Models\OutboxEvent::pending()->count())->toBeGreaterThan(0);
 });
 
 test('unknown command types are refused, never executed', function () {

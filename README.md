@@ -58,9 +58,20 @@ The token is a secret: keep it in `.env` only and never commit it. In production
 php artisan control:status      # check the connection and show how this device is registered
 php artisan control:heartbeat   # what the scheduler runs every minute
 php artisan control:poll        # run queued remote commands now
+php artisan control:push        # send recorded changes now (the scheduler does this every minute)
+php artisan control:resync      # queue a fresh full copy of the data (optionally: control:resync order payment)
 ```
 
-The scheduler must be running (`composer dev` starts it; in production use cron with `schedule:run`). Remote commands are limited to a fixed allowlist: `check_version`, `collect_diagnostics`, `refresh_config`; `sync_now` reports that event synchronization is not enabled yet. An unreachable server is normal and only logged once per outage.
+The scheduler must be running (`composer dev` starts it; in production use cron with `schedule:run`). Remote commands are limited to a fixed allowlist: `check_version`, `collect_diagnostics`, `refresh_config` and `sync_now` (push the outbox immediately). An unreachable server is normal and only logged once per outage.
+
+### Data sent to Jocko Control
+
+Once linked, every create, update, delete and restore of the models listed in `config/control.php` (`sync.entities`) is recorded in the `control_outbox_events` table, in the same database transaction as the change, and pushed to Jocko Control in order. This is what lets administrators browse a read-only copy of the shop there. Run `php artisan migrate` after updating.
+
+- **Offline-safe:** events wait in the outbox while the internet is down and are sent when it returns. Delivery is repeatable; Jocko Control ignores events it already has. A shop that is not linked records nothing.
+- **First link:** the first push also queues the current state of every existing record, so nothing created earlier is missing. `control:resync` repeats that on demand if you ever suspect a gap.
+- **Allowlist:** `sync.entities` lists, per model, the only fields that leave the machine. Passwords, OTP codes, remember tokens, settings/API keys, roles and uploaded files are never sent. Do not add a credential to that list.
+- Confirmed events are kept 7 days (`sync.retention_days`) and then pruned; events refused for good by Jocko Control stay in the table with the reason in `rejected_code` / `last_error`. `control:status` shows how many events are waiting.
 
 ## Language
 

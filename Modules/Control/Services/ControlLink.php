@@ -4,6 +4,7 @@ namespace Modules\Control\Services;
 
 use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Control\Exceptions\ControlException;
 
@@ -18,6 +19,10 @@ class ControlLink
     private const LAST_CONTACT = 'control.last_contact_at';
 
     private const LAST_ERROR = 'control.last_error';
+
+    private const PUSH_REPORT = 'control.push_report';
+
+    private const SNAPSHOT_DONE = 'snapshot_queued_at';
 
     public function succeeded(): void
     {
@@ -53,6 +58,49 @@ class ControlLink
         $e->needsAttention()
             ? Log::error('Jocko Control refused or could not be used: '.$e->getMessage(), $context)
             : Log::warning('Jocko Control is not reachable right now: '.$e->getMessage(), $context);
+    }
+
+    /**
+     * Remember how the last push went, to tell Jocko Control with the next heartbeat.
+     */
+    public function pushed(bool $ok, ?string $error = null): void
+    {
+        Cache::forever(self::PUSH_REPORT, array_filter([
+            'status' => $ok ? 'success' : 'failed',
+            'error' => $error === null ? null : mb_substr($error, 0, 500),
+        ]));
+    }
+
+    /**
+     * The outcome of the push since the last heartbeat, once.
+     *
+     * @return array{status: 'success'|'failed', error?: string}|null
+     */
+    public function pullPushReport(): ?array
+    {
+        $report = Cache::pull(self::PUSH_REPORT);
+
+        /** @var array{status: 'success'|'failed', error?: string}|null */
+        return is_array($report) ? $report : null;
+    }
+
+    /**
+     * Kept in the database, not the cache: a `cache:clear` must not make the
+     * shop queue a second full copy of its data.
+     */
+    public function markSnapshotQueued(): void
+    {
+        DB::table('control_state')->updateOrInsert(
+            ['key' => self::SNAPSHOT_DONE],
+            ['value' => now()->toIso8601String(), 'created_at' => now(), 'updated_at' => now()],
+        );
+    }
+
+    public function snapshotQueuedAt(): ?string
+    {
+        $value = DB::table('control_state')->where('key', self::SNAPSHOT_DONE)->value('value');
+
+        return is_string($value) ? $value : null;
     }
 
     public function lastContactAt(): ?string
