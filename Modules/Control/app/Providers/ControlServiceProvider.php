@@ -7,8 +7,12 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\DevCommands;
 use Modules\Control\Console\HeartbeatCommand;
 use Modules\Control\Console\PollCommand;
+use Modules\Control\Console\PushCommand;
+use Modules\Control\Console\ResyncCommand;
 use Modules\Control\Console\StatusCommand;
+use Modules\Control\Observers\SyncedModelObserver;
 use Modules\Control\Services\ControlClient;
+use Modules\Control\Services\SyncEntities;
 
 class ControlServiceProvider extends BaseModuleServiceProvider
 {
@@ -30,6 +34,8 @@ class ControlServiceProvider extends BaseModuleServiceProvider
     protected array $commands = [
         HeartbeatCommand::class,
         PollCommand::class,
+        PushCommand::class,
+        ResyncCommand::class,
         StatusCommand::class,
     ];
 
@@ -44,6 +50,10 @@ class ControlServiceProvider extends BaseModuleServiceProvider
     {
         parent::boot();
 
+        foreach (resolve(SyncEntities::class)->models() as $model) {
+            $model::observe(SyncedModelObserver::class);
+        }
+
         // `composer dev` should run the scheduler too, or the heartbeat never fires.
         if ($this->app->isLocal()) {
             DevCommands::artisan('schedule:work', 'schedule');
@@ -57,6 +67,12 @@ class ControlServiceProvider extends BaseModuleServiceProvider
     protected function configureSchedules(Schedule $schedule): void
     {
         $schedule->command(HeartbeatCommand::class)
+            ->everyMinute()
+            ->withoutOverlapping(5)
+            ->when(fn (): bool => resolve(ControlClient::class)->isConfigured());
+
+        // After the heartbeat, so a command such as sync_now and the regular push never overlap.
+        $schedule->command(PushCommand::class)
             ->everyMinute()
             ->withoutOverlapping(5)
             ->when(fn (): bool => resolve(ControlClient::class)->isConfigured());

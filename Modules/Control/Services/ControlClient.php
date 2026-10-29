@@ -51,6 +51,20 @@ class ControlClient
     }
 
     /**
+     * Push a batch of events. The answer says, per event, whether it was
+     * accepted, already known, or refused: match results by event_id.
+     *
+     * @param  list<array<string, mixed>>  $events
+     * @return array{accepted?: list<array<string, mixed>>, already_accepted?: list<array<string, mixed>>, rejected?: list<array<string, mixed>>}
+     *
+     * @throws ControlException
+     */
+    public function pushEvents(array $events): array
+    {
+        return $this->data($this->send('post', 'sync/events', ['events' => $events]));
+    }
+
+    /**
      * @return list<array<string, mixed>>
      *
      * @throws ControlException

@@ -3,16 +3,23 @@
 namespace Modules\Control\Services\Commands;
 
 use Modules\Control\Exceptions\CommandFailedException;
+use Modules\Control\Exceptions\ControlException;
+use Modules\Control\Services\OutboxPusher;
 
 /**
- * ponytail: there is no event outbox yet, so there is nothing to push. Say so
- * instead of pretending. Replace this with a call into the outbox pusher once
- * business events are synchronized.
+ * Sends whatever is waiting in the outbox right now instead of at the next
+ * scheduled run. Repeating it is harmless.
  */
 class SyncNowHandler implements RemoteCommandHandler
 {
+    public function __construct(private readonly OutboxPusher $pusher) {}
+
     public function handle(array $payload): array
     {
-        throw new CommandFailedException('Event synchronization is not enabled on this installation yet.');
+        try {
+            return $this->pusher->push();
+        } catch (ControlException $e) {
+            throw new CommandFailedException($e->getMessage());
+        }
     }
 }
