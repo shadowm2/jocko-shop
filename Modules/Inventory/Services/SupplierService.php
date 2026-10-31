@@ -4,8 +4,10 @@ namespace Modules\Inventory\Services;
 
 use App\Helpers\Utils;
 use App\Services\BaseService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Dashboard\Models\City;
 use Modules\Dashboard\Services\CityService;
 use Modules\Inventory\Models\Supplier;
@@ -59,6 +61,25 @@ class SupplierService extends BaseService
         $data['slug'] ??= Utils::generateUniqueSlug('supplier '.$user->fullName(), Supplier::class);
 
         return parent::create($data);
+    }
+
+    /**
+     * A supplier is a person (a user) plus supplier details, and the edit form
+     * carries both: save them together or not at all.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function update(int|Model $model, array $data): bool
+    {
+        if ($model instanceof Supplier === false) {
+            $model = $this->findOrFail($model);
+        }
+
+        return DB::transaction(function () use ($model, $data): bool {
+            resolve(UserService::class)->update($model->user, $this->interpretData($data));
+
+            return parent::update($model, $data);
+        });
     }
 
     protected function interpretData(array $data): array
