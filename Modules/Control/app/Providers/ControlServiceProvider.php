@@ -10,12 +10,17 @@ use Modules\Control\Console\PollCommand;
 use Modules\Control\Console\PushCommand;
 use Modules\Control\Console\ResyncCommand;
 use Modules\Control\Console\StatusCommand;
+use Modules\Control\Exceptions\ControlException;
 use Modules\Control\Observers\SyncedModelObserver;
 use Modules\Control\Services\ControlClient;
+use Modules\Control\Services\OutboxPusher;
 use Modules\Control\Services\SyncEntities;
 
 class ControlServiceProvider extends BaseModuleServiceProvider
 {
+    /** Batches the five-second push may send per tick. */
+    private const FAST_PUSH_BATCHES = 5;
+
     /**
      * The name of the module.
      */
@@ -61,13 +66,15 @@ class ControlServiceProvider extends BaseModuleServiceProvider
     }
 
     /**
-     * Report to Jocko Control every minute. Skipped entirely when the
-     * installation is not configured, and a run that overlaps a slow one is dropped.
+     * Report to Jocko Control every 15 seconds, which is also how quickly a queued
+     * remote command is noticed. Skipped entirely when the installation is not
+     * configured, and a run that overlaps a slow one is dropped.
+     * Changes themselves go out within seconds, see below.
      */
     protected function configureSchedules(Schedule $schedule): void
     {
         $schedule->command(HeartbeatCommand::class)
-            ->everyMinute()
+            ->everyFifteenSeconds()
             ->withoutOverlapping(5)
             ->when(fn (): bool => resolve(ControlClient::class)->isConfigured());
 
@@ -76,5 +83,21 @@ class ControlServiceProvider extends BaseModuleServiceProvider
             ->everyMinute()
             ->withoutOverlapping(5)
             ->when(fn (): bool => resolve(ControlClient::class)->isConfigured());
+
+        // Changes should show up in Jocko Control within seconds, not at the next
+        // minute. This tick is nearly free: it only does anything when an event is
+        // waiting, and a few batches per tick keep it well under the API's rate limit.
+        $schedule->call(function (): void {
+            try {
+                resolve(OutboxPusher::class)->push(self::FAST_PUSH_BATCHES);
+            } catch (ControlException) {
+                // ControlLink has recorded it; the events stay queued for the next tick.
+            }
+        })
+            ->name('control:push-fast')
+            ->everyFiveSeconds()
+            ->withoutOverlapping(5)
+            ->when(fn (): bool => resolve(ControlClient::class)->isConfigured()
+                && resolve(OutboxPusher::class)->hasPending());
     }
 }

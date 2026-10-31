@@ -64,6 +64,13 @@ test('it is registered with the scheduler only when configured', function () {
     expect($events)->toHaveCount(1)->and($events->first()->filtersPass(app()))->toBeFalse();
 });
 
+test('the heartbeat runs every fifteen seconds so queued commands are noticed quickly', function () {
+    $event = collect(app(Illuminate\Console\Scheduling\Schedule::class)->events())
+        ->first(fn ($event) => str_contains($event->command ?? '', 'control:heartbeat'));
+
+    expect($event->repeatSeconds)->toBe(15);
+});
+
 test('pending commands are run and acknowledged', function () {
     fakeControl(1, [['id' => '11111111-1111-4111-8111-111111111111', 'type' => 'check_version', 'payload' => []]]);
 
@@ -235,4 +242,22 @@ test('status fails clearly when not configured', function () {
     config(['control.url' => null, 'control.token' => null]);
 
     $this->artisan('control:status')->expectsOutputToContain('JOCKO_CONTROL_URL')->assertFailed();
+});
+
+test('a long migration name or version never makes the heartbeat invalid', function () {
+    // Jocko Control rejects the entire heartbeat, and with it the command queue, over a label above 50 characters.
+    DB::table('migrations')->insert(['migration' => '2099_01_01_000000_create_a_table_with_a_really_quite_long_name', 'batch' => 999]);
+    config(['control.app_version' => str_repeat('v', 80)]);
+
+    $payload = resolve(Modules\Control\Services\DeviceStatus::class)->heartbeatPayload();
+
+    expect(mb_strlen($payload['database_schema_version']))->toBe(50)
+        ->and($payload['database_schema_version'])->toStartWith('2099_01_01_000000_create_a_table')
+        ->and(mb_strlen($payload['app_version']))->toBe(50);
+});
+
+test('the real latest migration fits the heartbeat limits', function () {
+    $payload = resolve(Modules\Control\Services\DeviceStatus::class)->heartbeatPayload();
+
+    expect(mb_strlen($payload['database_schema_version']))->toBeLessThanOrEqual(50);
 });

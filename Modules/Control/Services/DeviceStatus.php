@@ -14,6 +14,9 @@ use Throwable;
 #[Singleton]
 class DeviceStatus
 {
+    /** The longest app_version / database_schema_version the API accepts. */
+    private const LABEL_LIMIT = 50;
+
     public function __construct(private readonly ControlLink $link) {}
 
     public function appVersion(): string
@@ -71,8 +74,8 @@ class DeviceStatus
         $databaseOk = $this->databaseOk();
 
         return array_filter([
-            'app_version' => $this->appVersion(),
-            'database_schema_version' => $this->schemaVersion(),
+            'app_version' => $this->fit($this->appVersion()),
+            'database_schema_version' => $this->fit($this->schemaVersion()),
             'local_status' => array_filter([
                 'state' => $databaseOk ? 'idle' : 'error',
                 'pending_events' => $databaseOk ? $this->pendingEvents() : null,
@@ -81,6 +84,15 @@ class DeviceStatus
             ], fn (mixed $value) => $value !== null),
             'sync' => $this->link->pullPushReport(),
         ], fn (mixed $value) => $value !== null);
+    }
+
+    /**
+     * Jocko Control rejects the whole heartbeat, commands and all, when one of
+     * these labels is longer than it allows, so never send a longer one.
+     */
+    private function fit(?string $label): ?string
+    {
+        return $label === null ? null : mb_substr($label, 0, self::LABEL_LIMIT);
     }
 
     public function pendingEvents(): ?int
