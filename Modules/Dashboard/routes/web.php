@@ -10,13 +10,13 @@ use Modules\Dashboard\Livewire\CityList;
 use Modules\Dashboard\Livewire\CountryCreate;
 use Modules\Dashboard\Livewire\CountryEdit;
 use Modules\Dashboard\Livewire\CountryList;
+use Modules\Dashboard\Livewire\JockoControlSettings;
 use Modules\Dashboard\Livewire\Overview;
 use Modules\Dashboard\Livewire\ProvinceCreate;
 use Modules\Dashboard\Livewire\ProvinceEdit;
 use Modules\Dashboard\Livewire\ProvinceList;
 use Modules\Dashboard\Livewire\Reports;
 use Modules\Dashboard\Livewire\SystemSettings;
-use Modules\Dashboard\Livewire\JockoControlSettings;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/dashboard', Overview::class)->name('dashboard');

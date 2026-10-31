@@ -43,7 +43,7 @@ class CityCreate extends Component
         } else {
             $provinces = new LengthAwarePaginator([], 0, 15);
         }
-        $this->form->province = $provinces->first()?->slug ?? '';
+        $this->form->province = $provinces->first()->slug ?? '';
 
         return view('dashboard::livewire.cities-create', [
             ...compact('provinces', 'countries'),

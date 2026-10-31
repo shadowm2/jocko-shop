@@ -31,8 +31,14 @@ jobs:
         with:
           node-version: '22'
 
+      # `composer setup` migrates the database named in .env.example (MySQL),
+      # which does not exist on a runner. The tests use in-memory SQLite anyway,
+      # so give setup a throwaway SQLite database instead.
       - name: Setup Application
         run: composer setup
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
 
       - name: Run CI Checks
         run: composer ci:check
