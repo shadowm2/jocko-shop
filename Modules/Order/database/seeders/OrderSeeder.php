@@ -22,7 +22,7 @@ class OrderSeeder extends Seeder
         // Order lines are picked from warehouse stock, so Inventory seeds first.
         $warehouses = Warehouse::has('warehouseItems')->get();
         if ($warehouses->isEmpty()) {
-            $this->command->warn('No warehouse items found; seed Inventory before Order.');
+            $this->command?->warn('No warehouse items found; seed Inventory before Order.');
 
             return;
         }

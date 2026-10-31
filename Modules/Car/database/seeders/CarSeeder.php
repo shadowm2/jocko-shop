@@ -772,7 +772,7 @@ class CarSeeder extends Seeder
             $imagesExist = $dirExists && count(scandir($srcPath)) > 2;
 
             if ($imagesExist) {
-                $this->command->info('Car Has Images: '.$car->slug);
+                $this->command?->info('Car Has Images: '.$car->slug);
                 foreach (scandir($srcPath) as $image) {
                     if ($image != '.' && $image != '..') {
                         if (! file_exists($destPath)) {
@@ -796,15 +796,15 @@ class CarSeeder extends Seeder
                 if ($isChecked) {
                     $lastChecked = Carbon::parse(Cache::get($cacheKey));
                     if ($lastChecked->addDays(14)->isAfter(now())) {
-                        $this->command->info('Skipped Car: '.$car->slug);
+                        $this->command?->info('Skipped Car: '.$car->slug);
 
                         continue;
                     } else {
-                        $this->command->info('Car is checked but is old: '.$car->slug);
+                        $this->command?->info('Car is checked but is old: '.$car->slug);
                         Cache::set($cacheKey, now()->toISOString());
                     }
                 } else {
-                    $this->command->info('Car not in cache: '.$car->slug);
+                    $this->command?->info('Car not in cache: '.$car->slug);
                     Cache::set($cacheKey, now()->toISOString());
                 }
                 $proxy = 'socks5://localhost:10808';
@@ -827,7 +827,7 @@ class CarSeeder extends Seeder
                 if (! file_exists($destPath)) {
                     mkdir($destPath, 0755, true);
                 }
-                $this->command->info('Getting Images for car: '.$car->slug);
+                $this->command?->info('Getting Images for car: '.$car->slug);
                 if ($response->successful()) {
                     foreach ($response->json()['results'] as $result) {
                         $image = $result['urls']['regular'] ?? null;
@@ -872,9 +872,9 @@ class CarSeeder extends Seeder
                                     'size' => filesize(Storage::disk('public')->path("car/$path")),
                                 ]);
 
-                                $this->command->info("✓ Image downloaded: {$path}");
+                                $this->command?->info("✓ Image downloaded: {$path}");
                             } else {
-                                $this->command->error('Failed to download: '.$response->status());
+                                $this->command?->error('Failed to download: '.$response->status());
                             }
                         }
                     }
