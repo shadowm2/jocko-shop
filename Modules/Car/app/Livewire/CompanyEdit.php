@@ -43,7 +43,7 @@ class CompanyEdit extends BaseComponent
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Cars'),
+                'title' => __('car::strings.Edit Car Company'),
             ]);
     }
 }

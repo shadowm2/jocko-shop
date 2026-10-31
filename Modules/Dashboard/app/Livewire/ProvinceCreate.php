@@ -33,7 +33,7 @@ class ProvinceCreate extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Country Create'),
+                'title' => __('dashboard::strings.Province Add'),
             ]);
     }
 }

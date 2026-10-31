@@ -39,7 +39,7 @@ class ProvinceEdit extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Provinces'),
+                'title' => __('dashboard::strings.Edit Province'),
             ]);
     }
 }

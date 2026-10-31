@@ -23,7 +23,7 @@ class UserCreate extends Component
         return view('user::livewire.user-add', [])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('user::strings.Users'),
+                'title' => __('user::strings.Add User'),
             ]);
     }
 }

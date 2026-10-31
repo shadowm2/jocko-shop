@@ -85,7 +85,7 @@ class WarehouseItemList extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('inventory::strings.Warehouses'),
+                'title' => __('inventory::strings.Warehouse Items List'),
             ]);
     }
 }

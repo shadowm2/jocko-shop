@@ -49,7 +49,7 @@ class WarehouseItemEdit extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Units'),
+                'title' => __('inventory::strings.Edit Warehouse Item'),
             ]);
     }
 }

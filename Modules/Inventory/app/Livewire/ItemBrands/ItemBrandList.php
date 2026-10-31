@@ -106,7 +106,7 @@ class ItemBrandList extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('inventory::strings.Items'),
+                'title' => __('inventory::strings.Item Brands'),
             ]);
     }
 }
