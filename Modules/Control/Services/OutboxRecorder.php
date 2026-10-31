@@ -51,6 +51,6 @@ class OutboxRecorder
      */
     private function persistedState(Model $model): Model
     {
-        return $this->entities->queryWithDeleted($model::class)->find($model->getKey()) ?? $model;
+        return $this->entities->queryWithDeleted($model::class)->whereKey($model->getKey())->first() ?? $model;
     }
 }

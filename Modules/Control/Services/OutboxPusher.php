@@ -25,11 +25,12 @@ class OutboxPusher
     ) {}
 
     /**
+     * @param  int|null  $maxBatches  how many batches this run may send; the configured maximum when null
      * @return array{pushed: int, rejected: int, remaining: int}
      *
      * @throws ControlException when Jocko Control cannot be reached or refuses the batch
      */
-    public function push(): array
+    public function push(?int $maxBatches = null): array
     {
         $this->snapshot->ensureInitial();
 
@@ -38,14 +39,14 @@ class OutboxPusher
         $batchSize = max(1, (int) config('control.sync.batch_size'));
 
         try {
-            for ($batch = 0; $batch < (int) config('control.sync.max_batches_per_run'); $batch++) {
+            for ($batch = 0; $batch < ($maxBatches ?? (int) config('control.sync.max_batches_per_run')); $batch++) {
                 $events = OutboxEvent::query()->pending()->orderBy('id')->limit($batchSize)->get();
 
                 if ($events->isEmpty()) {
                     break;
                 }
 
-                [$accepted, $refused] = $this->send($events->all());
+                [$accepted, $refused] = $this->send(array_values($events->all()));
 
                 $pushed += $accepted;
                 $rejected += $refused;
@@ -60,6 +61,11 @@ class OutboxPusher
         $this->prune();
 
         return ['pushed' => $pushed, 'rejected' => $rejected, 'remaining' => $this->pendingCount()];
+    }
+
+    public function hasPending(): bool
+    {
+        return OutboxEvent::query()->pending()->exists();
     }
 
     public function pendingCount(): int

@@ -6,6 +6,7 @@ use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -53,7 +54,7 @@ class SyncEntities
     public function queryWithDeleted(string $class): Builder
     {
         return in_array(SoftDeletes::class, class_uses_recursive($class), true)
-            ? $class::withTrashed()
+            ? $class::query()->withoutGlobalScope(SoftDeletingScope::class)
             : $class::query();
     }
 

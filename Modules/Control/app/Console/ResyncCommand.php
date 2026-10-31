@@ -20,7 +20,7 @@ class ResyncCommand extends Command
             return self::FAILURE;
         }
 
-        $queued = $snapshot->enqueue($this->argument('entity'));
+        $queued = $snapshot->enqueue(array_values((array) $this->argument('entity')));
 
         foreach ($queued as $type => $count) {
             $this->components->twoColumnDetail($type, (string) $count);

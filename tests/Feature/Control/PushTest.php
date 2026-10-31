@@ -258,3 +258,60 @@ test('the snapshot of a large table is read in chunks without loading it all', f
 
     expect($queued)->toBe(['brand' => 1200])->and(OutboxEvent::count())->toBe(1200);
 });
+
+/**
+ * The scheduler entry that pushes waiting changes every few seconds.
+ */
+function fastPushEvent(): Illuminate\Console\Scheduling\CallbackEvent
+{
+    return collect(resolve(Illuminate\Console\Scheduling\Schedule::class)->events())
+        ->first(fn ($event) => $event->description === 'control:push-fast');
+}
+
+test('changes are pushed every five seconds, not only at the next minute', function () {
+    $event = fastPushEvent();
+
+    expect($event)->not->toBeNull()->and($event->repeatSeconds)->toBe(5);
+});
+
+test('the five-second push does nothing while nothing is waiting or the shop is not linked', function () {
+    expect(fastPushEvent()->filtersPass(app()))->toBeFalse();
+
+    brand('Bosch');
+    expect(fastPushEvent()->filtersPass(app()))->toBeTrue();
+
+    config(['control.url' => null]);
+    expect(fastPushEvent()->filtersPass(app()))->toBeFalse();
+});
+
+test('the five-second push sends what is waiting', function () {
+    fakePush();
+    brand('Bosch');
+
+    fastPushEvent()->run(app());
+
+    expect(OutboxEvent::pending()->count())->toBe(0);
+    Http::assertSentCount(1);
+});
+
+test('one five-second tick sends at most a few batches so the rate limit is never at risk', function () {
+    config(['control.sync.batch_size' => 1]);
+    fakePush();
+    foreach (range(1, 8) as $i) {
+        brand("Brand {$i}");
+    }
+
+    fastPushEvent()->run(app());
+
+    Http::assertSentCount(5);
+    expect(OutboxEvent::pending()->count())->toBe(3);
+});
+
+test('an unreachable server does not break the five-second tick and the changes wait', function () {
+    brand('Bosch');
+    fakeHttp(['*' => fn () => throw new ConnectionException('offline')]);
+
+    fastPushEvent()->run(app());
+
+    expect(OutboxEvent::pending()->count())->toBe(1)->and(OutboxEvent::sole()->attempts)->toBe(1);
+});
