@@ -4,8 +4,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Modules\Control\Models\OutboxEvent;
 use Modules\Control\Services\SyncEntities;
+use Modules\Dashboard\Models\Category;
 use Modules\Dashboard\Models\Setting;
 use Modules\Inventory\Models\Brand;
+use Modules\Inventory\Models\Item;
+use Modules\Inventory\Models\UnitGroup;
+use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Models\WarehouseItem;
 use Modules\User\Models\User;
 
@@ -80,8 +84,13 @@ test('soft deletes, restores and hard deletes each queue exactly one event', fun
 });
 
 test('incrementing stock quantity is a change worth sending', function () {
-    Schema::disableForeignKeyConstraints();
-    $item = WarehouseItem::forceCreate(['slug' => 'main-oil', 'warehouse_id' => 1, 'item_id' => 1, 'quantity' => 10]);
+    // Real parent rows, so the foreign keys hold on every database (disabling them
+    // does nothing on SQLite inside a test transaction).
+    $group = UnitGroup::forceCreate(['name' => 'Count', 'slug' => 'count']);
+    $category = Category::forceCreate(['name' => 'Oil', 'slug' => 'oil', 'type' => 'item', 'depth' => 0]);
+    $oil = Item::forceCreate(['name' => 'Oil', 'slug' => 'oil-item', 'unit_group_id' => $group->id, 'category_id' => $category->id]);
+    $main = Warehouse::forceCreate(['name' => 'Main', 'slug' => 'main']);
+    $item = WarehouseItem::forceCreate(['slug' => 'main-oil', 'warehouse_id' => $main->id, 'item_id' => $oil->id, 'quantity' => 10]);
     $before = OutboxEvent::where('aggregate_type', 'warehouse_item')->count();
 
     $item->increment('quantity', 5);
