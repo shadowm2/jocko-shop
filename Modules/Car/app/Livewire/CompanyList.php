@@ -66,7 +66,7 @@ class CompanyList extends BaseComponent
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Cars'),
+                'title' => __('car::strings.Car Companies'),
             ]);
     }
 }

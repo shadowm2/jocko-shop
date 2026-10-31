@@ -44,7 +44,7 @@ class CityEdit extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Cities'),
+                'title' => __('dashboard::strings.Edit City'),
             ]);
     }
 }

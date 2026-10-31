@@ -45,7 +45,7 @@ class ItemEdit extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('inventory::strings.Item Edit'),
+                'title' => __('inventory::strings.Edit Item'),
             ]);
     }
 }

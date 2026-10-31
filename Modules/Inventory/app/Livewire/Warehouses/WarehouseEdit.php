@@ -32,7 +32,7 @@ class WarehouseEdit extends Component
         return view('inventory::livewire.warehouses-edit', [])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Units'),
+                'title' => __('inventory::strings.Edit Warehouse'),
             ]);
     }
 }

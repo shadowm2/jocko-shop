@@ -32,7 +32,7 @@ class UserEdit extends Component
         return view('user::livewire.users-edit', [])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('user::strings.Users'),
+                'title' => __('user::strings.Edit User'),
             ]);
     }
 }

@@ -33,7 +33,7 @@ class CompanyCreate extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Cars'),
+                'title' => __('car::strings.Add Car Company'),
             ]);
     }
 }

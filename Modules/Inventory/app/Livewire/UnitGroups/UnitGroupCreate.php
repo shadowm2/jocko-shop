@@ -33,7 +33,7 @@ class UnitGroupCreate extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Unit Groups'),
+                'title' => __('inventory::strings.Unit Group Add'),
             ]);
     }
 }

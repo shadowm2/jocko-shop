@@ -24,7 +24,7 @@ class WarehouseCreate extends Component
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([
-                'title' => __('dashboard::strings.Units'),
+                'title' => __('inventory::strings.Warehouse Add'),
             ]);
     }
 }
