@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /*
@@ -17,6 +19,28 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Browser');
+
+// deferForeignKeys() turns constraint checks off for the rest of a test; put them back
+// so a test that did it cannot leak into the next one on a connection that is reused.
+afterEach(function () {
+    Schema::enableForeignKeyConstraints();
+});
+
+/**
+ * Let a test build bare rows (an order without its customer, car and so on)
+ * without the foreign keys objecting. Tests run inside a transaction, where
+ * SQLite can only defer the check and MySQL can only switch it off.
+ */
+function deferForeignKeys(): void
+{
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        DB::statement('PRAGMA defer_foreign_keys = ON');
+
+        return;
+    }
+
+    Schema::disableForeignKeyConstraints();
+}
 
 /*
 |--------------------------------------------------------------------------

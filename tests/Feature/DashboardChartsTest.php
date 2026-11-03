@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\DB;
 use Modules\Dashboard\Livewire\Overview;
 use Modules\Inventory\Enums\PurchaseStatus;
 use Modules\Inventory\Models\Purchase;
@@ -14,7 +13,7 @@ use Morilog\Jalali\Jalalian;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $this->order = function (string $number, OrderStatus $status, int $total, $at) {
         $order = Order::forceCreate([

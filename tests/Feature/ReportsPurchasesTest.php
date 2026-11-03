@@ -1,7 +1,6 @@
 <?php
 
 use App\Helpers\Utils;
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Dashboard\Livewire\Reports;
 use Modules\Inventory\Enums\PurchaseStatus;
@@ -13,7 +12,7 @@ use Morilog\Jalali\Jalalian;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $ali = Supplier::forceCreate(['slug' => 'ali', 'user_id' => User::factory()->create(['first_name' => 'Ali', 'last_name' => 'Rezaei'])->id]);
     $sara = Supplier::forceCreate(['slug' => 'sara', 'user_id' => User::factory()->create(['first_name' => 'Sara', 'last_name' => 'Karimi'])->id]);

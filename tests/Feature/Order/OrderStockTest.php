@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\Inventory\Enums\StockMovementType;
 use Modules\Inventory\Models\Item;
@@ -17,7 +16,7 @@ use Modules\Order\Services\OrderService;
 // foreign key checks are deferred (never reached, the test transaction rolls
 // back) instead of building that whole graph.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $group = UnitGroup::forceCreate(['name' => 'Count', 'slug' => 'count']);
     $this->piece = Unit::forceCreate(['name' => 'Piece', 'symbol' => 'pc', 'unit_group_id' => $group->id, 'conversion_factor' => 1, 'is_base' => true, 'slug' => 'piece']);

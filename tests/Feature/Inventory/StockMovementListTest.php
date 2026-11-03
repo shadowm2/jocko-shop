@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Inventory\Enums\StockMovementType;
 use Modules\Inventory\Livewire\StockMovements\StockMovementList;
@@ -13,7 +12,7 @@ use Modules\User\Models\User;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $group = UnitGroup::forceCreate(['name' => 'Count', 'slug' => 'count']);
     $oil = Item::forceCreate(['name' => 'Oil', 'slug' => 'oil', 'unit_group_id' => $group->id, 'category_id' => 1]);
