@@ -37,7 +37,8 @@ class WarehouseItemCreate extends Component
     {
         $itemService = resolve(ItemService::class);
         $warehouseService = resolve(WarehouseService::class);
-        $items = $itemService->getItems(paginate: false);
+        // A service has no stock, so it is never put in a warehouse.
+        $items = $itemService->getItems(['where' => [['is_service', false]]], paginate: false);
         $currentWarehouse = $warehouseService->getActiveWarehouse();
         $warehouses = $warehouseService->getWarehouses(paginate: false);
 

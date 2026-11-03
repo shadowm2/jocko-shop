@@ -146,4 +146,5 @@ return [
     'Low Stock List' => 'Low stock list',
     'Search Low Stock' => 'Search by item name',
     'Stock' => 'Stock',
+    'Is Service Hint' => 'Labour or another service sold on orders. It has no stock, so it is never added to a warehouse.',
 ];

@@ -8,12 +8,16 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Form;
 use Modules\Inventory\Livewire\Concerns\UsesFixedWarehouse;
+use Modules\Inventory\Models\Item;
 use Modules\Inventory\Models\Unit;
 use Modules\Inventory\Models\WarehouseItem;
 use Modules\Inventory\Services\WarehouseItemService;
 use Modules\Order\Enums\OrderStatus;
 use Modules\Order\Models\Order;
+use Modules\Order\Models\OrderItem;
 use Modules\Order\Services\OrderService;
+use Modules\User\Enums\UserType;
+use Modules\User\Models\User;
 
 class OrderForm extends Form
 {
@@ -30,6 +34,17 @@ class OrderForm extends Form
     public string $status = OrderStatus::PENDING->value;
 
     public ?string $description = null;
+
+    /**
+     * Service lines (labour and the like), keyed by the service's slug, each with
+     * quantity, unit_price and optionally the mechanic's user id.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    public array $services = [];
+
+    /** The service chosen in the list, waiting to be added. */
+    public string $serviceToAdd = '';
 
     /**
      * Warehouse item slugs currently chosen in the picker.
@@ -56,6 +71,10 @@ class OrderForm extends Form
             'description' => 'nullable|string',
             'selected' => ['nullable', 'array'],
             'selected.*' => ['string', 'distinct', Rule::exists('warehouse_items', 'slug')],
+            'services' => ['nullable', 'array'],
+            'services.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'services.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'services.*.mechanic_id' => ['nullable', 'integer', 'exists:users,id'],
             'items' => ['nullable', 'array'],
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
@@ -106,6 +125,48 @@ class OrderForm extends Form
         }
     }
 
+    /**
+     * Services that can be added: active service items, slug => name.
+     *
+     * @return array<string, string>
+     */
+    public function serviceOptions(): array
+    {
+        return Item::query()->where('is_service', true)->where('is_active', true)->orderBy('name')->pluck('name', 'slug')->all();
+    }
+
+    /**
+     * Who can be put on a service: the shop's staff (administrators), id => name.
+     *
+     * @return array<int, string>
+     */
+    public function mechanicOptions(): array
+    {
+        return User::query()->where('type', UserType::Admin)->get()->mapWithKeys(fn (User $user): array => [$user->id => $user->fullName()])->all();
+    }
+
+    public function addService(): void
+    {
+        $slug = $this->serviceToAdd;
+        $this->serviceToAdd = '';
+
+        if (isset($this->serviceOptions()[$slug])) {
+            $this->services[$slug] ??= ['quantity' => 1, 'unit_price' => 0, 'mechanic_id' => null];
+        }
+    }
+
+    public function removeService(string $slug): void
+    {
+        unset($this->services[$slug]);
+    }
+
+    public function serviceTotal(string $slug): float
+    {
+        $line = $this->services[$slug] ?? [];
+
+        return round($this->number($line['quantity'] ?? 0) * $this->number($line['unit_price'] ?? 0), 2);
+    }
+
     public function removeOrderItem(string $slug): void
     {
         $this->selected = array_values(array_diff($this->selected, [$slug]));
@@ -136,6 +197,13 @@ class OrderForm extends Form
         $this->warehouse = $order->warehouse->slug;
         $this->status = $order->status->value;
         $this->description = $order->description;
+
+        $this->services = $order->items()->whereHas('item', fn ($item) => $item->where('is_service', true))->with('item')->get()
+            ->mapWithKeys(fn (OrderItem $line): array => [$line->item->slug => [
+                'quantity' => (float) $line->quantity,
+                'unit_price' => (float) $line->unit_price,
+                'mechanic_id' => $line->mechanic_id,
+            ]])->all();
 
         // The picker binds warehouse item slugs while an order stores plain
         // item ids, so map the stored lines back to their warehouse item.
@@ -208,8 +276,15 @@ class OrderForm extends Form
         }
         unset($line);
 
+        foreach ($this->services as &$service) {
+            $service['quantity'] = $this->number($service['quantity'] ?? 0);
+            $service['unit_price'] = $this->number($service['unit_price'] ?? 0);
+        }
+        unset($service);
+
         $data = $this->validate();
-        unset($data['selected']);
+        unset($data['selected'], $data['serviceToAdd']);
+        $data['services'] ??= [];
 
         $orderService = resolve(OrderService::class);
 

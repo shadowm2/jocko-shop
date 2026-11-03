@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Modules\Car\Models\UserCar;
+use Modules\Inventory\Models\Item;
 use Modules\Inventory\Services\StockMovementService;
 use Modules\Inventory\Services\WarehouseItemService;
 use Modules\Inventory\Services\WarehouseService;
@@ -59,11 +60,13 @@ class OrderService extends BaseService
         $data['slug'] ??= Utils::generateUniqueSlug($user->initials().' '.$userCar->car->name, Order::class);
         $data['order_number'] ??= Order::nextNumber();
         $items = Arr::pull($data, 'items', []);
+        $services = Arr::pull($data, 'services', []);
 
-        return DB::transaction(function () use ($data, $items) {
+        return DB::transaction(function () use ($data, $items, $services) {
             /** @var Order $order */
             $order = parent::create($data);
             $this->syncItems($order, $items);
+            $this->syncServices($order, $services);
             $this->syncStock($order);
 
             return $order->refresh();
@@ -78,12 +81,17 @@ class OrderService extends BaseService
 
         // Absent items leave the lines untouched; an empty array clears them.
         $items = Arr::pull($data, 'items');
+        $services = Arr::pull($data, 'services');
 
-        return DB::transaction(function () use ($model, $data, $items) {
+        return DB::transaction(function () use ($model, $data, $items, $services) {
             $updated = parent::update($model, $data);
 
             if (is_array($items)) {
                 $this->syncItems($model, $items);
+            }
+
+            if (is_array($services)) {
+                $this->syncServices($model, $services);
             }
 
             // Also on a status-only change: cancelling gives the stock back.
@@ -119,7 +127,8 @@ class OrderService extends BaseService
 
         $itemIds = $warehouseItems->pluck('item_id')->all();
 
-        $order->items()->whereNotIn('item_id', $itemIds)->delete();
+        // Service lines are not warehouse items and are kept by syncServices().
+        $order->items()->whereNotIn('item_id', $itemIds)->whereDoesntHave('item', fn ($item) => $item->where('is_service', true))->delete();
         $order->items()->onlyTrashed()->whereIn('item_id', $itemIds)->restore();
 
         $existing = $order->items()->get()->keyBy('item_id');
@@ -142,6 +151,52 @@ class OrderService extends BaseService
     }
 
     /**
+     * Reconcile the service lines (labour and the like) of an order.
+     *
+     * Each entry is keyed by the service's slug and carries its quantity, price
+     * and optionally who did it. A service has no stock, so these lines never
+     * touch the warehouse.
+     *
+     * @param  array<string, array<string, mixed>>  $lines
+     */
+    protected function syncServices(Order $order, array $lines): void
+    {
+        $services = Item::query()->with('unitGroup.units')->where('is_service', true)->whereIn('slug', array_keys($lines))->get()->keyBy('slug');
+
+        $missing = array_diff(array_keys($lines), $services->keys()->all());
+        if ($missing !== []) {
+            throw new InvalidArgumentException('Services not found: '.implode(', ', $missing));
+        }
+
+        $ids = $services->pluck('id')->all();
+
+        $order->items()->whereIn('item_id', Item::query()->where('is_service', true)->select('id'))->whereNotIn('item_id', $ids)->delete();
+        $order->items()->onlyTrashed()->whereIn('item_id', $ids)->restore();
+
+        $existing = $order->items()->get()->keyBy('item_id');
+
+        foreach ($services as $slug => $service) {
+            $line = $lines[$slug];
+            $units = $service->unitGroup->units;
+            $values = $this->lineValues($line + ['unit_id' => ($units->firstWhere('is_base', true) ?? $units->first())?->id]) + [
+                'mechanic_id' => filled($line['mechanic_id'] ?? null) ? (int) $line['mechanic_id'] : null,
+            ];
+
+            if ($current = $existing->get($service->id)) {
+                $current->update($values);
+
+                continue;
+            }
+
+            $order->items()->create([
+                'slug' => Utils::generateUniqueSlug('os '.$order->slug.' '.$service->slug, OrderItem::class),
+                'item_id' => $service->id,
+                ...$values,
+            ]);
+        }
+    }
+
+    /**
      * Active orders hold their lines' stock; a cancelled order holds none.
      * Throws a ValidationException when a line exceeds what is on hand.
      */
@@ -150,7 +205,7 @@ class OrderService extends BaseService
         /** @var Collection<int, OrderItem> $lines */
         $lines = $order->status === OrderStatus::CANCELLED
             ? new Collection
-            : $order->items()->with(['unit', 'item.unitGroup.units'])->get();
+            : $order->items()->whereDoesntHave('item', fn ($item) => $item->where('is_service', true))->with(['unit', 'item.unitGroup.units'])->get();
 
         resolve(StockMovementService::class)->syncSale($order, $order->warehouse_id, $lines);
     }

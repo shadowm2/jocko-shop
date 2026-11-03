@@ -63,6 +63,8 @@
     :$itemCatalog
 />
 
+<x-order::order-services-editor :form="$this->form" />
+
 <flux:field>
     <flux:label>
         {{ __('order::attributes.Description') }}

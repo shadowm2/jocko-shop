@@ -56,3 +56,12 @@
     <flux:switch wire:model="form.is_active" />
     <flux:error name="form.is_active" />
 </flux:field>
+
+<flux:field>
+    <flux:label>
+        {{ __('inventory::attributes.Is Service') }}
+    </flux:label>
+    <flux:switch wire:model="form.is_service" />
+    <flux:description>{{ __('inventory::strings.Is Service Hint') }}</flux:description>
+    <flux:error name="form.is_service" />
+</flux:field>

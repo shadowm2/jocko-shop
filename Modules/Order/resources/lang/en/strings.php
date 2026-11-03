@@ -93,4 +93,10 @@ return [
     'Refunded' => 'Refunded',
     'Refund Confirm' => 'Give this payment back to the customer\'s card? This cannot be undone.',
     'Refund Done' => 'The payment was refunded.',
+    'Services' => 'Services',
+    'No Services Defined' => 'No services yet. Add one in Items, with "Service" switched on.',
+    'Select Service' => 'Select a service',
+    'Add Service' => 'Add',
+    'Mechanic' => 'Done by',
+    'Remove' => 'Remove',
 ];
