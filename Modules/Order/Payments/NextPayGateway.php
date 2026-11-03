@@ -3,6 +3,7 @@
 namespace Modules\Order\Payments;
 
 use Illuminate\Http\Client\ConnectionException;
+use Modules\Order\Enums\PaymentAttemptStatus;
 use Modules\Order\Models\PaymentAttempt;
 
 /**
@@ -11,8 +12,11 @@ use Modules\Order\Models\PaymentAttempt;
  * whether it worked, so every return is verified. The amount is sent in the
  * shop's own currency unit (`currency` IRT or IRR) for both calls.
  */
-class NextPayGateway extends Gateway
+class NextPayGateway extends Gateway implements RefundableGateway
 {
+    /** NextPay takes a refund request for 20 minutes after the payment was verified. */
+    private const REFUND_WINDOW_MINUTES = 20;
+
     private const BASE = 'https://nextpay.org/nx/gateway';
 
     public function key(): string
@@ -86,6 +90,29 @@ class NextPayGateway extends Gateway
 
         // -2 rejected, -4 cancelled, and the rest: it will not be paid.
         return GatewayVerification::failed('code '.($code ?? '?'));
+    }
+
+    public function canRefund(PaymentAttempt $attempt): bool
+    {
+        return $attempt->status === PaymentAttemptStatus::PAID
+            && $attempt->completed_at !== null
+            && $attempt->completed_at->addMinutes(self::REFUND_WINDOW_MINUTES)->isFuture();
+    }
+
+    public function refund(PaymentAttempt $attempt): void
+    {
+        $body = $this->post('/verify', [
+            'api_key' => $this->secret('payments.nextpay.api_key'),
+            'trans_id' => (string) $attempt->reference,
+            'amount' => (int) round((float) $attempt->amount),
+            'currency' => $attempt->currency,
+            'refund_request' => 'yes_money_back',
+        ]);
+
+        // -90: the refund went through. Anything else did not.
+        if (($body['code'] ?? null) !== -90) {
+            throw new GatewayException('NextPay did not refund the payment: code '.($body['code'] ?? '?'));
+        }
     }
 
     /**

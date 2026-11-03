@@ -29,9 +29,11 @@ use Modules\Order\Enums\PaymentAttemptStatus;
  * @property \Illuminate\Support\Carbon $expires_at
  * @property ?\Illuminate\Support\Carbon $last_checked_at
  * @property ?\Illuminate\Support\Carbon $completed_at
+ * @property ?\Illuminate\Support\Carbon $refunded_at
+ * @property ?int $refund_payment_id
  * @property-read Order $order
  */
-#[Fillable(['public_id', 'order_id', 'user_id', 'kind', 'driver', 'amount', 'currency', 'status', 'reference', 'pay_url', 'result_reference', 'card_pan', 'failure', 'payment_id', 'expires_at', 'last_checked_at', 'completed_at'])]
+#[Fillable(['public_id', 'order_id', 'user_id', 'kind', 'driver', 'amount', 'currency', 'status', 'reference', 'pay_url', 'result_reference', 'card_pan', 'failure', 'payment_id', 'expires_at', 'last_checked_at', 'completed_at', 'refunded_at', 'refund_payment_id'])]
 class PaymentAttempt extends Model
 {
     /**
@@ -45,6 +47,7 @@ class PaymentAttempt extends Model
             'expires_at' => 'datetime',
             'last_checked_at' => 'datetime',
             'completed_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 

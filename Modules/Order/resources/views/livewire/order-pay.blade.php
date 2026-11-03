@@ -49,8 +49,20 @@
 
             @if ($open->isOnline())
                 <flux:text>{{ __('order::strings.Online Instructions') }}</flux:text>
+                @if ($qr)
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div
+                            class="shrink-0 rounded-lg border border-zinc-200 bg-white p-2 [&_svg]:size-44"
+                            data-payment-qr
+                            role="img"
+                            aria-label="{{ __('order::strings.Scan To Pay') }}"
+                        >{!! $qr !!}</div>
+                        <flux:text size="sm" class="text-zinc-500">{{ __('order::strings.Scan To Pay') }}</flux:text>
+                    </div>
+                @endif
                 <div class="flex flex-wrap items-center gap-2">
                     <flux:button :href="$open->pay_url" target="_blank" variant="primary" icon="arrow-top-right-on-square">{{ __('order::strings.Open Payment Page') }}</flux:button>
+                    <flux:button wire:click="sendLink" wire:loading.attr="disabled" wire:target="sendLink" icon="chat-bubble-left-ellipsis" data-send-link>{{ __('order::strings.Send Link By Sms') }}</flux:button>
                     <div class="min-w-0 flex-1">
                         <flux:input readonly copyable :value="$open->pay_url" dir="ltr" />
                     </div>
@@ -134,6 +146,11 @@
                         <div class="flex items-center gap-3">
                             @if ($past->failure && $past->status !== PaymentAttemptStatus::PAID)
                                 <span class="max-w-xs truncate text-xs text-zinc-500" title="{{ $past->failure }}">{{ $past->failure }}</span>
+                            @endif
+                            @if ($past->refunded_at)
+                                <flux:badge size="sm" color="zinc">{{ __('order::strings.Refunded') }}</flux:badge>
+                            @elseif ($canRefund($past))
+                                <flux:button size="xs" variant="ghost" icon="arrow-uturn-left" wire:click="refund('{{ $past->public_id }}')" wire:confirm="{{ __('order::strings.Refund Confirm') }}" data-refund="{{ $past->public_id }}">{{ __('order::strings.Refund') }}</flux:button>
                             @endif
                             <span class="font-medium">{{ $money($past->amount) }}</span>
                         </div>

@@ -102,6 +102,38 @@
         @endforeach
     </div>
 
+    {{-- What was collected today, and how --}}
+    <flux:card
+        class="space-y-3"
+        data-collected-today
+    >
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <flux:heading>{{ __('dashboard::strings.Collected Today') }}</flux:heading>
+            <span
+                class="text-2xl font-semibold tabular-nums"
+                data-collected-total="{{ (float) $collectedToday->sum('total') }}"
+            >{{ Utils::pDigits(Utils::formatQuantity((float) $collectedToday->sum('total'), 2, ',')) }}</span>
+        </div>
+
+        @forelse ($collectedToday as $method)
+            <div
+                class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5"
+                data-collected-method="{{ $method->method->value }}"
+            >
+                <div class="min-w-0">
+                    <span class="font-medium">{{ $method->method->label() }}</span>
+                    <flux:text
+                        size="sm"
+                        class="inline ms-2"
+                    >{{ __('dashboard::strings.Payments count', ['count' => Utils::pDigits((string) $method->payments)]) }}</flux:text>
+                </div>
+                <span class="shrink-0 text-sm tabular-nums">{{ Utils::pDigits(Utils::formatQuantity((float) $method->total, 2, ',')) }}</span>
+            </div>
+        @empty
+            <flux:text class="py-2">{{ __('dashboard::strings.No payments today') }}</flux:text>
+        @endforelse
+    </flux:card>
+
     {{-- Trends --}}
     @if (array_sum($monthSales) + array_sum($monthPurchases) > 0)
         <div class="grid gap-4 xl:grid-cols-2">
