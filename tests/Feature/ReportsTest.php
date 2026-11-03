@@ -1,7 +1,6 @@
 <?php
 
 use App\Helpers\Utils;
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Dashboard\Livewire\Reports;
 use Modules\Inventory\Models\Item;
@@ -16,7 +15,7 @@ use Morilog\Jalali\Jalalian;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $group = UnitGroup::forceCreate(['name' => 'Count', 'slug' => 'count']);
     $oil = Item::forceCreate(['name' => 'Oil', 'slug' => 'oil', 'unit_group_id' => $group->id, 'category_id' => 1]);
@@ -61,12 +60,14 @@ it('adds up sales, collections and what is still owed, leaving cancelled orders 
 
 it('totals every order that is owed but lists only the largest ten', function () {
     $customer = User::first();
+    // Not item 1: only SQLite starts counting again after every test.
+    $oilId = Item::where('slug', 'oil')->value('id');
     foreach (range(1, 12) as $n) {
         $order = Order::forceCreate([
             'slug' => "X{$n}", 'user_id' => $customer->id, 'user_car_id' => 1, 'warehouse_id' => 1,
             'order_number' => "X{$n}", 'status' => OrderStatus::PENDING,
         ]);
-        OrderItem::forceCreate(['slug' => "X{$n}-line", 'order_id' => $order->id, 'item_id' => 1, 'quantity' => 1, 'unit_price' => 100, 'total' => 100]);
+        OrderItem::forceCreate(['slug' => "X{$n}-line", 'order_id' => $order->id, 'item_id' => $oilId, 'quantity' => 1, 'unit_price' => 100, 'total' => 100]);
     }
 
     ($this->range)()

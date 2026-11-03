@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Modules\Car\Models\Car;
 use Modules\Car\Models\UserCar;
 use Modules\Inventory\Models\Item;
@@ -16,7 +15,7 @@ use Modules\User\Models\User;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $this->customer = User::factory()->create(['first_name' => 'Sara', 'last_name' => 'Karimi', 'mobile' => '09352222222']);
     $car = Car::forceCreate(['name' => 'Pride', 'slug' => 'pride', 'car_company_id' => 1]);

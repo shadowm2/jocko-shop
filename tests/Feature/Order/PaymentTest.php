@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Order\Enums\OrderStatus;
 use Modules\Order\Enums\PaymentMethod;
@@ -16,7 +15,7 @@ use Modules\User\Models\User;
 // Bare rows only: items, cars and warehouses are irrelevant here, so foreign key
 // checks are deferred (never reached, the test transaction rolls back).
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $this->user = User::factory()->create();
     $this->order = Order::forceCreate([

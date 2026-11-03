@@ -101,7 +101,7 @@ npx playwright install chromium   # once
 composer test:browser     # real-browser smoke tests of the list pages
 ```
 
-The tests use an in-memory SQLite database (`phpunit.xml`), so PHP needs `pdo_sqlite` to run them. CI (`.github/workflows/tests.yml`) runs the same checks, then the browser tests.
+The tests use an in-memory SQLite database (`phpunit.xml`), so PHP needs `pdo_sqlite` to run them. CI (`.github/workflows/tests.yml`) runs the same checks, then the browser tests, and runs the suite a second time on MySQL. The tests are written for both databases: a test that builds bare rows calls `deferForeignKeys()` (see `tests/Pest.php`), and no test may rely on a fixed id such as `item_id => 1`, because only SQLite starts counting again after every test. To run the suite on MySQL locally, point it at an empty database whose name ends in `_test`: `DB_CONNECTION=mysql DB_DATABASE=jocko_shop_test ./vendor/bin/pest` (the tests wipe it).
 
 ## License
 
