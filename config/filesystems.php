@@ -41,7 +41,9 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Relative on purpose: built from APP_URL it points at the wrong host or port
+            // whenever the app is opened by another address than APP_URL (dev servers, LAN, proxies).
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

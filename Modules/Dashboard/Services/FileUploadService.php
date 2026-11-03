@@ -22,7 +22,7 @@ class FileUploadService
         $module = Str::of($module)->lower()->toString();
         $baseClassName = Str::of(class_basename($model))->lower()->plural()->toString();
         $mediaService = resolve(MediaService::class);
-        $disk ??= config('filesystems.default', 'public');
+        $disk ??= 'public';
         $directory = "{$module}".DIRECTORY_SEPARATOR.$baseClassName;
         if (! empty($customDir)) {
             $directory .= DIRECTORY_SEPARATOR.$customDir;

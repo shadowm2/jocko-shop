@@ -22,6 +22,7 @@ class OutboxPusher
         private readonly ControlClient $client,
         private readonly ControlLink $link,
         private readonly OutboxSnapshot $snapshot,
+        private readonly MediaUploader $media,
     ) {}
 
     /**
@@ -40,7 +41,7 @@ class OutboxPusher
 
         try {
             for ($batch = 0; $batch < ($maxBatches ?? (int) config('control.sync.max_batches_per_run')); $batch++) {
-                $events = OutboxEvent::query()->pending()->orderBy('id')->limit($batchSize)->get();
+                $events = $this->media->limit(OutboxEvent::query()->pending()->orderBy('id')->limit($batchSize)->get());
 
                 if ($events->isEmpty()) {
                     break;
@@ -82,6 +83,8 @@ class OutboxPusher
     private function send(array $events): array
     {
         try {
+            $this->media->upload($events);
+
             $response = $this->client->pushEvents(array_map($this->wire(...), $events));
         } catch (ControlException $e) {
             OutboxEvent::query()->whereKey(array_map(fn (OutboxEvent $event): int => $event->getKey(), $events))

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Modules\Dashboard\Models\Media;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -77,7 +78,22 @@ class SyncEntities
      */
     public function payloadOf(Model $model): array
     {
-        return array_intersect_key($model->attributesToArray(), array_flip($this->fieldsOf($model)));
+        $payload = array_intersect_key($model->attributesToArray(), array_flip($this->fieldsOf($model)));
+
+        // A picture says which record it belongs to by entity type, not by PHP class name.
+        if ($model instanceof Media) {
+            unset($payload['model_type'], $payload['model_id']);
+
+            $payload['owner_type'] = $this->ownerType($model);
+            $payload['owner_id'] = $model->model_id;
+        }
+
+        return $payload;
+    }
+
+    private function ownerType(Media $media): ?string
+    {
+        return $this->entities()[$media->model_type]['type'] ?? null;
     }
 
     /**
