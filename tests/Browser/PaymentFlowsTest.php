@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Modules\Dashboard\Services\SettingService;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Order\Enums\OrderStatus;
@@ -14,7 +13,7 @@ use Modules\User\Models\User;
 // Real browser, real clicks: the cashier's screen and the warehouse switch as a person uses them.
 
 beforeEach(function () {
-    Schema::disableForeignKeyConstraints();
+    deferForeignKeys();
     $this->actingAs(User::factory()->create());
 
     $this->main = Warehouse::forceCreate(['name' => 'Main', 'slug' => 'main']);
