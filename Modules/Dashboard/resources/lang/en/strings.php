@@ -272,4 +272,6 @@ return [
     'NextPay API Key' => 'NextPay API key',
     'Zibal' => 'Zibal',
     'Zibal Merchant' => 'Zibal merchant (use "zibal" to test)',
+    'Collected Today' => 'Collected today',
+    'No payments today' => 'No payments today',
 ];

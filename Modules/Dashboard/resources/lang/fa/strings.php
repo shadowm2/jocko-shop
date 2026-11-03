@@ -278,4 +278,6 @@ return [
     'NextPay API Key' => 'کلید API نکست‌پی',
     'Zibal' => 'زیبال',
     'Zibal Merchant' => 'مرچنت زیبال (برای تست «zibal»)',
+    'Collected Today' => 'دریافتی امروز',
+    'No payments today' => 'امروز پرداختی ثبت نشده است',
 ];
