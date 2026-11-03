@@ -82,4 +82,11 @@ return [
     'Payment Attempts' => 'Payment attempts',
     'Settled' => 'Settled',
     'Overpaid' => 'Overpaid',
+    'Scan To Pay' => 'Scan with the phone camera to pay',
+    'Send Link By Sms' => 'Text the link',
+    'Customer Has No Mobile' => 'This customer has no mobile number.',
+    'Link Already Sent' => 'The link was sent a moment ago.',
+    'Link Sent' => 'The payment link was sent.',
+    'Link Not Sent' => 'The link could not be sent: :reason',
+    'Payment Link Sms' => ':shop - pay :amount for order :order: :url',
 ];

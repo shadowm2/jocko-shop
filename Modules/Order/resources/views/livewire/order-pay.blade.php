@@ -49,8 +49,20 @@
 
             @if ($open->isOnline())
                 <flux:text>{{ __('order::strings.Online Instructions') }}</flux:text>
+                @if ($qr)
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div
+                            class="shrink-0 rounded-lg border border-zinc-200 bg-white p-2 [&_svg]:size-44"
+                            data-payment-qr
+                            role="img"
+                            aria-label="{{ __('order::strings.Scan To Pay') }}"
+                        >{!! $qr !!}</div>
+                        <flux:text size="sm" class="text-zinc-500">{{ __('order::strings.Scan To Pay') }}</flux:text>
+                    </div>
+                @endif
                 <div class="flex flex-wrap items-center gap-2">
                     <flux:button :href="$open->pay_url" target="_blank" variant="primary" icon="arrow-top-right-on-square">{{ __('order::strings.Open Payment Page') }}</flux:button>
+                    <flux:button wire:click="sendLink" wire:loading.attr="disabled" wire:target="sendLink" icon="chat-bubble-left-ellipsis" data-send-link>{{ __('order::strings.Send Link By Sms') }}</flux:button>
                     <div class="min-w-0 flex-1">
                         <flux:input readonly copyable :value="$open->pay_url" dir="ltr" />
                     </div>

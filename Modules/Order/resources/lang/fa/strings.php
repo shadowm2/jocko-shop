@@ -94,4 +94,11 @@ return [
     'Payment Attempts' => 'تلاش‌های پرداخت',
     'Settled' => 'تسویه‌شده',
     'Overpaid' => 'اضافه‌پرداخت',
+    'Scan To Pay' => 'برای پرداخت، با دوربین گوشی اسکن کنید',
+    'Send Link By Sms' => 'ارسال پیوند با پیامک',
+    'Customer Has No Mobile' => 'این مشتری شمارهٔ موبایل ندارد.',
+    'Link Already Sent' => 'پیوند همین الان فرستاده شد.',
+    'Link Sent' => 'پیوند پرداخت فرستاده شد.',
+    'Link Not Sent' => 'ارسال پیوند ممکن نشد: :reason',
+    'Payment Link Sms' => ':shop - پرداخت :amount برای سفارش :order: :url',
 ];

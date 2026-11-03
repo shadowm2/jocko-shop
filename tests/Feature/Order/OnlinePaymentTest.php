@@ -581,3 +581,72 @@ it('keeps the gateway credentials in the encrypted settings', function () {
         ->and($fields['zibal.merchant']['secret'])->toBeTrue()
         ->and($fields['zarinpal.merchant_id']['config'])->toBe('payments.zarinpal.merchant_id');
 });
+
+// ---------------------------------------------------------------------------
+// QR code and SMS link
+// ---------------------------------------------------------------------------
+
+it('shows a QR code of the payment page while an online payment is open', function () {
+    fakeZarinpal();
+
+    $html = Livewire::test(OrderPay::class, ['order' => $this->order])
+        ->set('amount', '40000')
+        ->call('payOnline', 'zarinpal')
+        ->assertSee('data-payment-qr', false)
+        ->html();
+
+    expect($html)->toContain('<svg')->not->toContain('<?xml');
+});
+
+it('draws the QR code from the payment link only and as a clean SVG', function () {
+    $svg = Modules\Order\Payments\QrCode::svg('https://payment.zarinpal.com/pg/StartPay/A1');
+
+    expect($svg)->toStartWith('<svg')->toEndWith('</svg>')->not->toContain('<script')
+        ->and(Modules\Order\Payments\QrCode::svg('https://payment.zarinpal.com/pg/StartPay/A1'))->toBe($svg);
+});
+
+it('has no QR code for a card terminal payment or when nothing is open', function () {
+    Livewire::test(OrderPay::class, ['order' => $this->order])->assertDontSee('data-payment-qr', false)
+        ->set('amount', '25000')->call('payByCard', 'manual')->assertDontSee('data-payment-qr', false);
+});
+
+it('texts the customer the payment link, at most once every half minute', function () {
+    fakeZarinpal();
+    $customer = User::factory()->create(['mobile' => '09121234567']);
+    $this->order->update(['user_id' => $customer->id]);
+
+    Modules\Dashboard\Facades\Sms::shouldReceive('send')->once()->withArgs(fn (string $to, string $message) => $to === '09121234567'
+        && str_contains($message, 'https://payment.zarinpal.com/pg/StartPay/A0000000000000000000000000000wwOGYpd')
+        && str_contains($message, 'ORD-00001'));
+
+    Livewire::test(OrderPay::class, ['order' => $this->order->fresh()])
+        ->set('amount', '40000')
+        ->call('payOnline', 'zarinpal')
+        ->call('sendLink')
+        ->call('sendLink');
+});
+
+it('says so instead of texting a customer who has no mobile', function () {
+    fakeZarinpal();
+    $customer = User::factory()->create(['mobile' => '']);
+    $this->order->update(['user_id' => $customer->id]);
+    Modules\Dashboard\Facades\Sms::shouldReceive('send')->never();
+
+    Livewire::test(OrderPay::class, ['order' => $this->order->fresh()])->set('amount', '40000')->call('payOnline', 'zarinpal')->call('sendLink')->assertOk();
+});
+
+it('keeps the payment open and allows a retry when the SMS cannot be sent', function () {
+    fakeZarinpal();
+    $customer = User::factory()->create(['mobile' => '09121234567']);
+    $this->order->update(['user_id' => $customer->id]);
+    Modules\Dashboard\Facades\Sms::shouldReceive('send')->twice()->andThrow(new Modules\Dashboard\Exceptions\SmsException('no credit'));
+
+    Livewire::test(OrderPay::class, ['order' => $this->order->fresh()])
+        ->set('amount', '40000')
+        ->call('payOnline', 'zarinpal')
+        ->call('sendLink')
+        ->call('sendLink')
+        ->assertSee('data-open-attempt="gateway"', false);
+
+    expect(PaymentAttempt::sole()->status)->toBe(PaymentAttemptStatus::PENDING);
+});
