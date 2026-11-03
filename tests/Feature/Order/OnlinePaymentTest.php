@@ -3,7 +3,6 @@
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Modules\Dashboard\Services\SettingService;
 use Modules\Inventory\Models\Warehouse;
@@ -20,7 +19,7 @@ use Modules\Order\Services\PaymentAttemptService;
 use Modules\User\Models\User;
 
 beforeEach(function () {
-    Schema::disableForeignKeyConstraints();
+    deferForeignKeys();
     Cache::flush();
     Http::preventStrayRequests();
     $this->actingAs(User::factory()->create());
