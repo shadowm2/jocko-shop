@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Modules\Dashboard\Livewire\WarehouseSettings;
 use Modules\Dashboard\Services\SettingService;
@@ -20,7 +19,7 @@ use Modules\Order\Models\Order;
 use Modules\User\Models\User;
 
 beforeEach(function () {
-    Schema::disableForeignKeyConstraints();
+    deferForeignKeys();
     Cache::flush();
     $this->actingAs(User::factory()->create());
 

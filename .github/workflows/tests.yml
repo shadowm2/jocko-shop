@@ -55,3 +55,55 @@ jobs:
           timeout -s KILL 200 vendor/bin/pest tests/Browser --stop-on-failure > browser.log 2>&1 < /dev/null || status=$?
           cat browser.log
           exit "${status:-0}"
+
+  # The same suite on MySQL, the database the shop really runs on. SQLite and MySQL
+  # differ in places a test can notice (quoting, auto-increment, foreign keys).
+  mysql:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: jocko_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: jocko_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: '8.5'
+          extensions: gd, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          node-version: '22'
+
+      - name: Setup Application
+        run: composer setup
+
+      - name: Run the tests on MySQL
+        run: ./vendor/bin/pest --exclude-group=browser tests/Feature tests/Unit

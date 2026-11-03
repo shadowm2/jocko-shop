@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Modules\Car\Models\Car;
 use Modules\Car\Models\UserCar;
@@ -14,7 +13,7 @@ use Modules\Order\Models\Payment;
 use Modules\User\Models\User;
 
 beforeEach(function () {
-    Schema::disableForeignKeyConstraints();
+    deferForeignKeys();
     $this->actingAs(User::factory()->create());
 
     $customer = User::factory()->create();
