@@ -21,7 +21,7 @@
             <img
                 src="{{ $src }}"
                 alt="{{ $alt }}"
-                class="mx-auto object-contain max-h-full rounded-xl shadow-sm transition duration-200 group-hover:scale-105 group-hover:opacity-90"
+                class="mx-auto object-contain max-h-full max-w-full rounded-xl shadow-sm transition duration-200 group-hover:scale-105 group-hover:opacity-90"
             />
 
             <div
