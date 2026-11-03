@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Car\Models\Car;
 use Modules\Car\Models\UserCar;
@@ -20,7 +19,7 @@ use Morilog\Jalali\Jalalian;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $ali = User::factory()->create(['first_name' => 'Ali', 'last_name' => 'Rezaei', 'mobile' => '09121111111']);
     $sara = User::factory()->create(['first_name' => 'Sara', 'last_name' => 'Karimi', 'mobile' => '09352222222']);

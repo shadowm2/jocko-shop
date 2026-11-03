@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Car\Models\Car;
 use Modules\Car\Models\CarCompany;
@@ -22,7 +21,7 @@ use Modules\User\Models\User;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
     $this->actingAs($this->user = User::factory()->create());
 
     $this->column = fn (string $key) => fn ($rows) => $rows->pluck($key)->all();

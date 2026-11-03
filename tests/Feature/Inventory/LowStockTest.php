@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\Inventory\Livewire\WarehouseItems\LowStockList;
 use Modules\Inventory\Livewire\WarehouseItems\WarehouseItemList;
@@ -13,7 +12,7 @@ use Modules\User\Models\User;
 
 // Bare rows only (see OrderStockTest): foreign key checks are deferred.
 beforeEach(function () {
-    DB::statement('PRAGMA defer_foreign_keys = ON');
+    deferForeignKeys();
 
     $group = UnitGroup::forceCreate(['name' => 'Count', 'slug' => 'count']);
     $this->main = Warehouse::forceCreate(['name' => 'Main', 'slug' => 'main']);

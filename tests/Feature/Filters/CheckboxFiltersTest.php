@@ -39,8 +39,8 @@ $sql = fn (string $filter, string $model, array $input): string => (new $filter(
     ->toRawSql();
 
 it('keeps only the ticked state of is_active', function (string $filter, string $model) use ($sql) {
-    expect($sql($filter, $model, ['is_active' => ['1']]))->toMatch('/"is_active" = 1/')
-        ->and($sql($filter, $model, ['is_active' => ['0']]))->toMatch('/"is_active" = 0/');
+    expect($sql($filter, $model, ['is_active' => ['1']]))->toMatch('/["`]is_active["`] = 1/')
+        ->and($sql($filter, $model, ['is_active' => ['0']]))->toMatch('/["`]is_active["`] = 0/');
 })->with($filters);
 
 it('does not filter when none or both states are ticked', function (string $filter, string $model) use ($sql) {
@@ -50,11 +50,11 @@ it('does not filter when none or both states are ticked', function (string $filt
 })->with($filters);
 
 it('still accepts a plain true from code that picks active rows', function (string $filter, string $model) use ($sql) {
-    expect($sql($filter, $model, ['is_active' => true]))->toMatch('/"is_active" = 1/');
+    expect($sql($filter, $model, ['is_active' => true]))->toMatch('/["`]is_active["`] = 1/');
 })->with($filters);
 
 it('filters units by is_base the same way', function () use ($sql) {
-    expect($sql(UnitFilter::class, Unit::class, ['is_base' => ['1']]))->toMatch('/"is_base" = 1/')
+    expect($sql(UnitFilter::class, Unit::class, ['is_base' => ['1']]))->toMatch('/["`]is_base["`] = 1/')
         ->and($sql(UnitFilter::class, Unit::class, ['is_base' => ['0', '1']]))->not->toContain('is_base');
 });
 
@@ -70,5 +70,5 @@ it('ignores values that are not 0 or 1', function () {
     $query = $filter->apply(Warehouse::query());
 
     expect($query)->toBeInstanceOf(Builder::class)
-        ->and($query->toRawSql())->toMatch('/"flag" = 1/');
+        ->and($query->toRawSql())->toMatch('/["`]flag["`] = 1/');
 });
