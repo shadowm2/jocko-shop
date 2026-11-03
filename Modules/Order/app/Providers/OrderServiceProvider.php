@@ -3,6 +3,8 @@
 namespace Modules\Order\Providers;
 
 use App\Providers\BaseModuleServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use Modules\Order\Console\ReconcilePaymentsCommand;
 
 class OrderServiceProvider extends BaseModuleServiceProvider
 {
@@ -21,7 +23,9 @@ class OrderServiceProvider extends BaseModuleServiceProvider
      *
      * @var string[]
      */
-    // protected array $commands = [];
+    protected array $commands = [
+        ReconcilePaymentsCommand::class,
+    ];
 
     /**
      * Provider classes to register.
@@ -32,4 +36,12 @@ class OrderServiceProvider extends BaseModuleServiceProvider
         EventServiceProvider::class,
         RouteServiceProvider::class,
     ];
+
+    /**
+     * A customer who paid but never came back to the shop is still found.
+     */
+    protected function configureSchedules(Schedule $schedule): void
+    {
+        $schedule->command(ReconcilePaymentsCommand::class)->everyMinute()->withoutOverlapping(5);
+    }
 }

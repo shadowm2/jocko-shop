@@ -9,6 +9,7 @@ use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 use Modules\Inventory\Enums\PurchaseStatus;
+use Modules\Inventory\Livewire\Concerns\UsesFixedWarehouse;
 use Modules\Inventory\Models\Purchase;
 use Modules\Inventory\Models\Unit;
 use Modules\Inventory\Models\WarehouseItem;
@@ -18,6 +19,8 @@ use Morilog\Jalali\Jalalian;
 
 class PurchaseForm extends Form
 {
+    use UsesFixedWarehouse;
+
     public ?int $id = null;
 
     public ?Purchase $purchase = null;
@@ -184,8 +187,14 @@ class PurchaseForm extends Form
     /**
      * @throws Exception
      */
+    protected function hasRecord(): bool
+    {
+        return $this->purchase !== null;
+    }
+
     public function save(): bool
     {
+        $this->useFixedWarehouse();
         $this->normalizeLineInputDigits();
         $this->syncLineValues();
 

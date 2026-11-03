@@ -33,11 +33,12 @@ class StockMovementList extends Component
 
     public function render(): View
     {
+        $multiWarehouse = resolve(WarehouseService::class)->isMultiple();
         $columns = [
             ['label' => __('inventory::attributes.Movement Date')],
             ['label' => __('inventory::attributes.Item Name')],
             ['label' => __('inventory::attributes.Movement Type')],
-            ['label' => __('inventory::attributes.Movement Warehouse')],
+            ...($multiWarehouse ? [['label' => __('inventory::attributes.Movement Warehouse')]] : []),
             ['label' => __('inventory::attributes.Movement Quantity')],
             ['label' => __('inventory::attributes.Movement Balance After')],
             ['label' => __('inventory::attributes.Movement Reference')],
@@ -49,8 +50,8 @@ class StockMovementList extends Component
             ['name' => 'search', 'type' => 'search', 'label' => __('inventory::strings.Search'), 'placeholder' => __('inventory::strings.Search Stock Movements')],
             ['name' => 'type', 'type' => 'select', 'label' => __('inventory::attributes.Movement Type'), 'placeholder' => __('strings.All'), 'options' => collect(StockMovementType::cases())
                 ->mapWithKeys(fn (StockMovementType $type) => [$type->value => $type->label()])->all()],
-            ['name' => 'warehouse_id', 'type' => 'select', 'label' => __('inventory::attributes.Movement Warehouse'), 'placeholder' => __('strings.All'), 'options' => resolve(WarehouseService::class)
-                ->getWarehouses(paginate: false)->pluck('name', 'id')->all()],
+            ...($multiWarehouse ? [['name' => 'warehouse_id', 'type' => 'select', 'label' => __('inventory::attributes.Movement Warehouse'), 'placeholder' => __('strings.All'), 'options' => resolve(WarehouseService::class)
+                ->getWarehouses(paginate: false)->pluck('name', 'id')->all()]] : []),
         ];
 
         return view('inventory::livewire.stock-movements-list', compact('columns', 'rows', 'filterDefinitions'))

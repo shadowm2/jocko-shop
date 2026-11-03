@@ -34,6 +34,9 @@ beforeEach(function () {
 });
 
 it('prints the customer, the lines, what was paid and what is still owed', function () {
+    // The warehouse is only named when the shop has several.
+    Warehouse::forceCreate(['name' => 'Spare', 'slug' => 'spare']);
+
     $this->actingAs($this->customer)
         ->get(route('orders.invoice', $this->order))
         ->assertOk()
@@ -57,4 +60,13 @@ it('is only for signed in users and only for orders that exist', function () {
     $this->get(route('orders.invoice', $this->order))->assertRedirect();
 
     $this->actingAs($this->customer)->get('/orders/nope/invoice')->assertNotFound();
+});
+
+it('leaves the warehouse off the invoice when the shop uses only one', function () {
+    $this->actingAs($this->customer)
+        ->get(route('orders.invoice', $this->order))
+        ->assertOk()
+        ->assertSee('ORD-00001')
+        ->assertDontSee(__('order::attributes.Warehouse'))
+        ->assertDontSee('Main');
 });

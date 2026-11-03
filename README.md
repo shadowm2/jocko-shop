@@ -72,7 +72,7 @@ The token is a secret: keep it in `.env` only and never commit it. In production
 php artisan control:status      # check the connection and show how this device is registered
 php artisan control:heartbeat   # report and run queued remote commands (the scheduler does this every 15 seconds)
 php artisan control:poll        # run queued remote commands now
-php artisan control:push        # send recorded changes now
+php artisan control:push        # send recorded changes now (or use Settings → Queued changes)
 php artisan control:resync      # queue a fresh full copy of the data (optionally: control:resync order payment)
 ```
 
@@ -87,6 +87,38 @@ Once linked, every create, update, delete and restore of the models listed in `c
 - **Pictures:** the photos of items, brands and cars (the `media` model) are announced like any record, and Jocko Control also gets a **downsized preview** of each (longest side 800 px, JPEG; PNGs with transparency stay PNG), sent just before its event. The original never leaves this machine. Previews are made with PHP's GD extension (needs `gd`; without it pictures are listed without a preview) and skipped for a file that is missing or too big to decode with the available `memory_limit`. A first sync of a big catalogue is spread over several pushes (`sync` batches are cut at `files.max_per_batch` uploads), so the heartbeat is never held up. After updating from a version without this, run `php artisan control:resync media` once to send the pictures that already exist.
 - **Allowlist:** `sync.entities` lists, per model, the only fields that leave the machine. Passwords, OTP codes, remember tokens, settings/API keys and roles are never sent, and neither are the original uploaded files (see below). Do not add a credential to that list.
 - Confirmed events are kept 7 days (`sync.retention_days`) and then pruned; events refused for good by Jocko Control stay in the table with the reason in `rejected_code` / `last_error`. `control:status` shows how many events are waiting.
+
+## Taking payments
+
+Open an order's **Collect payment** (the banknotes button in the orders list) to take what it still owes, online or on a card terminal. Every payment is an *attempt* that only becomes a payment record once it is confirmed, and only once.
+
+### Online gateways
+
+| Gateway | Settings (System settings, stored encrypted) | Checked against |
+| --- | --- | --- |
+| Zarinpal | merchant ID (`sandbox` = 1 for testing; any UUID works as a sandbox merchant) | the official docs, and live against their sandbox |
+| NextPay | API key | the official docs and sample code |
+| Zibal | merchant (`zibal` is their test merchant and needs no account) | their published request sample and live against the test merchant; the verify call follows community clients and was confirmed live for an unpaid payment only |
+
+A gateway appears on the payment screen once its credentials are set. Set the amount unit (toman or rial) and, if customers reach the shop on another address than `APP_URL`, the **payment return address**; gateways only accept the domain registered with them.
+
+How it works: the shop asks the gateway for a payment and shows the customer's payment page (open it on their phone or copy the link). The customer's browser is sent back to `/payments/online/{id}/return`, and the shop then asks the gateway itself whether it was paid, so a forged return changes nothing. The shop also asks about every open payment each minute (`payments:reconcile`, run by the scheduler), so a customer who paid and never came back to the shop is still found, and a late payment on a given-up attempt is still recorded. Unpaid attempts expire after `PAYMENTS_ATTEMPT_TTL_MINUTES` (30). Gateway credentials never leave the shop and are not sent to Jocko Control; the resulting payments are synchronized like any other.
+
+IDPay and Pay.ir are not included: their documentation could not be read when this was written (IDPay's site has an expired certificate), and a payment integration is not something to write from memory. Adding one is a class in `Modules/Order/Payments` implementing `PaymentGateway`, listed in `PaymentDrivers`.
+
+### Card terminals
+
+The **Card terminal** option works with any POS: enter the amount on the terminal, and when it approves, type the reference number it printed (and optionally the last four card digits). The payment is recorded as *Card terminal (POS)*.
+
+Driving a terminal from the shop (sending it the amount and reading the result) needs the bank's own protocol, which is private to each bank and needs their documentation or SDK and a test terminal. The extension point is ready: implement `PosTerminal` (`isAutomatic()`, `start()`, `check()`), list it in `PaymentDrivers`, and the cashier screen and the reconcile command handle the rest.
+
+## Warehouses
+
+**Settings → General → Warehouse settings** decides whether the shop works with several warehouses. With the switch **off**, everything uses the *default warehouse*: there are no warehouse pickers on orders, purchases, stock adjustments or stock items, no transfers, and no warehouse columns or filters. The *Warehouses* menu is replaced by a *Stock* menu (items and low stock) once the default exists, and stays until then so a first warehouse can be created. Existing records keep the warehouse they were made in. A shop that has never chosen keeps working as before when it has several warehouses, and uses its only one when it has one.
+
+## Queued changes
+
+**Settings → General → Queued changes** lists the changes recorded for Jocko Control: waiting, refused (with the reason) and sent in the last 7 days. *Send now* pushes the queue right away; *Retry refused* gives the refused ones another chance. If Control cannot be reached, the page says so and the changes simply keep waiting.
 
 ## Language
 

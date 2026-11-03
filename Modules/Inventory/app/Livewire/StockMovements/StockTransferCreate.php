@@ -13,6 +13,12 @@ class StockTransferCreate extends Component
 {
     public StockTransferForm $form;
 
+    public function mount(): void
+    {
+        // A transfer is between two warehouses; with one in use there is nothing to transfer between.
+        abort_unless(resolve(WarehouseService::class)->isMultiple(), 404);
+    }
+
     public function save(): void
     {
         $this->form->save();

@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Inventory\Models\Warehouse;
 use Modules\User\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -17,6 +18,10 @@ test('authenticated users can visit the dashboard', function () {
 
 test('the sidebar opens every group above the current page', function (string $route) {
     $this->actingAs(User::factory()->create());
+
+    // With one warehouse there is nothing to transfer between and no warehouses menu; this is about several.
+    Warehouse::forceCreate(['name' => 'Main', 'slug' => 'main']);
+    Warehouse::forceCreate(['name' => 'Spare', 'slug' => 'spare']);
 
     $html = $this->get(route($route))->getContent();
 

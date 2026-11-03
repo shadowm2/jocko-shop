@@ -12,6 +12,7 @@ use Modules\Inventory\Models\WarehouseItem;
 use Modules\Order\Enums\OrderStatus;
 use Modules\Order\Models\Order;
 use Modules\Order\Models\OrderItem;
+use Modules\Order\Models\Payment;
 use Modules\User\Enums\UserType;
 use Modules\User\Models\User;
 use Morilog\Jalali\Jalalian;
@@ -74,6 +75,12 @@ class Overview extends Component
 
         return view('dashboard::livewire.overview', [
             ...$this->trends(),
+            'collectedToday' => Payment::query()
+                ->whereDate('paid_at', today())
+                ->selectRaw('method, sum(amount) as total, count(*) as payments')
+                ->groupBy('method')
+                ->orderByDesc('total')
+                ->get(),
             'orderCount' => Order::count(),
             'statusCounts' => Order::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
             // Cancelled orders are not revenue.

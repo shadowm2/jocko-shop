@@ -44,10 +44,12 @@
             <dt class="text-zinc-500">{{ __('order::attributes.User Car') }}</dt>
             <dd class="font-medium">{{ $order->userCar->car->name }}</dd>
         </div>
-        <div>
-            <dt class="text-zinc-500">{{ __('order::attributes.Warehouse') }}</dt>
-            <dd class="font-medium">{{ $order->warehouse->name }}</dd>
-        </div>
+        @multiwarehouse
+            <div>
+                <dt class="text-zinc-500">{{ __('order::attributes.Warehouse') }}</dt>
+                <dd class="font-medium">{{ $order->warehouse->name }}</dd>
+            </div>
+        @endmultiwarehouse
     </dl>
 
     <table class="w-full border-collapse">

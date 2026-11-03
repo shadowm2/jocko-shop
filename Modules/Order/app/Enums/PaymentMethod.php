@@ -8,6 +8,8 @@ enum PaymentMethod: string
     case CARD = 'card';
     case TRANSFER = 'transfer';
     case CHEQUE = 'cheque';
+    case POS = 'pos';
+    case ONLINE = 'online';
 
     public static function getDefault(): self
     {

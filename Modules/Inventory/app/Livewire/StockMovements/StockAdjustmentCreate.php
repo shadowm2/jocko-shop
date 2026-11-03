@@ -7,6 +7,7 @@ use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Modules\Inventory\Livewire\Forms\StockAdjustmentForm;
 use Modules\Inventory\Services\WarehouseItemService;
+use Modules\Inventory\Services\WarehouseService;
 
 class StockAdjustmentCreate extends Component
 {
@@ -21,7 +22,8 @@ class StockAdjustmentCreate extends Component
 
     public function render(): View
     {
-        $warehouseItems = resolve(WarehouseItemService::class)->getWarehouseItems(paginate: false);
+        $fixed = resolve(WarehouseService::class)->fixedWarehouse();
+        $warehouseItems = resolve(WarehouseItemService::class)->getWarehouseItems($fixed ? ['warehouse_id' => $fixed->id] : [], paginate: false);
 
         return view('inventory::livewire.stock-adjustment-create', compact('warehouseItems'))
             ->layout('dashboard::layouts.app')

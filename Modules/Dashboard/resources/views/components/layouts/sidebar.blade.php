@@ -1,5 +1,7 @@
 @php
-    $activeWarehouse = resolve(\Modules\Inventory\Services\WarehouseService::class)->getActiveWarehouse();
+    $warehouseService = resolve(\Modules\Inventory\Services\WarehouseService::class);
+    $activeWarehouse = $warehouseService->getActiveWarehouse();
+    $showWarehouseMenu = $warehouseService->showsWarehouseMenu();
 @endphp
 <!DOCTYPE html>
 <html
@@ -173,6 +175,7 @@
                             {{ __('inventory::strings.Purchase Add') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
+                    @if ($showWarehouseMenu)
                     <flux:sidebar.group
                         expandable
                         :heading="__('inventory::strings.Warehouses')"
@@ -219,6 +222,40 @@
                             </flux:sidebar.item>
                         @endif
                     </flux:sidebar.group>
+                    @else
+                    {{-- One warehouse in use: no warehouses to manage, but its stock still needs its pages. --}}
+                    <flux:sidebar.group
+                        expandable
+                        :heading="__('inventory::strings.Stock')"
+                        class="grid"
+                        icon="shelving-unit"
+                        :expanded="request()->routeIs('warehouses.*')"
+                    >
+                        <flux:sidebar.item
+                            :href="route('warehouses.items.index')"
+                            :current="request()->routeIs('warehouses.items.index')"
+                            wire:navigate
+                        >
+                            {{ __('inventory::strings.Warehouse Items List') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item
+                            :href="route('warehouses.items.low-stock')"
+                            :current="request()->routeIs('warehouses.items.low-stock')"
+                            wire:navigate
+                        >
+                            {{ __('inventory::strings.Low Stock') }}
+                        </flux:sidebar.item>
+                        @if ($activeWarehouse)
+                            <flux:sidebar.item
+                                :href="route('warehouses.items.create', ['warehouse' => $activeWarehouse->slug])"
+                                :current="request()->routeIs('warehouses.items.create')"
+                                wire:navigate
+                            >
+                                {{ __('inventory::strings.Warehouse Items Create') }}
+                            </flux:sidebar.item>
+                        @endif
+                    </flux:sidebar.group>
+                    @endif
                     <flux:sidebar.group
                         expandable
                         :heading="__('inventory::strings.Stock Movements')"
@@ -241,6 +278,7 @@
                         >
                             {{ __('inventory::strings.Stock Adjustment Add') }}
                         </flux:sidebar.item>
+                        @multiwarehouse
                         <flux:sidebar.item
                             icon:trailing="plus"
                             :href="route('stock-movements.transfer')"
@@ -249,6 +287,7 @@
                         >
                             {{ __('inventory::strings.Stock Transfer Add') }}
                         </flux:sidebar.item>
+                        @endmultiwarehouse
                     </flux:sidebar.group>
                     <flux:sidebar.group
                         expandable
@@ -480,7 +519,7 @@
                     icon="wrench"
                     :heading="__('dashboard::strings.General')"
                     class="grid first-level"
-                    :expanded="request()->routeIs(['countries.*', 'provinces.*', 'cities.*', 'categories.*', 'system-settings.*', 'jocko-control-settings.*'])"
+                    :expanded="request()->routeIs(['countries.*', 'provinces.*', 'cities.*', 'categories.*', 'system-settings.*', 'jocko-control-settings.*', 'jocko-control-queue.*', 'warehouse-settings.*'])"
                 >
                     <flux:sidebar.item
                         icon="globe-alt"
@@ -492,6 +531,12 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="signal" :href="route('jocko-control-settings.edit')" :current="request()->routeIs('jocko-control-settings.edit')" wire:navigate>
                         {{ __('dashboard::strings.Jocko Control') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="queue-list" :href="route('jocko-control-queue.index')" :current="request()->routeIs('jocko-control-queue.index')" wire:navigate>
+                        {{ __('dashboard::strings.Queued Changes') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="shelving-unit" :href="route('warehouse-settings.edit')" :current="request()->routeIs('warehouse-settings.edit')" wire:navigate>
+                        {{ __('dashboard::strings.Warehouse Settings') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item
                         icon="map-pin"

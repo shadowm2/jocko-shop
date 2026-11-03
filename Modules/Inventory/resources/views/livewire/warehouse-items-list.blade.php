@@ -1,5 +1,7 @@
 <div class="flex flex-col gap-5">
-    <livewire:inventory-warehouse-picker />
+    @multiwarehouse
+        <livewire:inventory-warehouse-picker />
+    @endmultiwarehouse
     <x-table.data-table
         :$columns
         :$rows

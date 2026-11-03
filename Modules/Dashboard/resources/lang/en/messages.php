@@ -12,4 +12,7 @@ return [
     'Category Updated Successfully' => 'Category updated successfully',
     'Settings Saved Successfully' => 'Settings saved successfully',
     'Setting Cleared Successfully' => 'Setting cleared successfully',
+    'Jocko Control Not Linked' => 'This shop is not linked to Jocko Control.',
+    'Queued Changes Sent' => ':count change(s) sent.',
+    'Refused Changes Queued Again' => 'The refused changes are queued again.',
 ];

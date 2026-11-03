@@ -30,8 +30,9 @@ class LowStockList extends Component
 
     public function render(): View
     {
+        $multiWarehouse = resolve(WarehouseService::class)->isMultiple();
         $columns = [
-            ['label' => __('inventory::attributes.Warehouse')],
+            ...($multiWarehouse ? [['label' => __('inventory::attributes.Warehouse')]] : []),
             ['label' => __('inventory::attributes.Item Name')],
             ['label' => __('inventory::attributes.Warehouse Item Quantity')],
             ['label' => __('inventory::attributes.Warehouse Item Min Quantity')],
@@ -46,8 +47,8 @@ class LowStockList extends Component
 
         $filterDefinitions = [
             ['name' => 'search', 'type' => 'search', 'label' => __('inventory::strings.Search'), 'placeholder' => __('inventory::strings.Search Low Stock')],
-            ['name' => 'warehouse_id', 'type' => 'select', 'label' => __('inventory::attributes.Warehouse'), 'placeholder' => __('strings.All'), 'options' => resolve(WarehouseService::class)
-                ->getWarehouses(paginate: false)->pluck('name', 'id')->all()],
+            ...($multiWarehouse ? [['name' => 'warehouse_id', 'type' => 'select', 'label' => __('inventory::attributes.Warehouse'), 'placeholder' => __('strings.All'), 'options' => resolve(WarehouseService::class)
+                ->getWarehouses(paginate: false)->pluck('name', 'id')->all()]] : []),
         ];
 
         return view('inventory::livewire.low-stock-list', compact('columns', 'rows', 'filterDefinitions'))

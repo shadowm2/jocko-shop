@@ -15,7 +15,7 @@
 <x-inventory::purchase-items-editor
     :form="$this->form"
     :$itemCatalog
-    :show-warehouse-picker="true"
+    :show-warehouse-picker="$this->form->showsWarehousePicker()"
     picker-key="purchase-order-item-picker"
 />
 

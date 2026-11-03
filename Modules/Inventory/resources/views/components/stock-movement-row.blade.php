@@ -23,13 +23,15 @@
             @endif
         </div>
     </x-table.cell>
-    <x-table.cell>
-        @if ($direction === 0)
-            {{ $row->fromWarehouse?->name }} &rarr; {{ $row->toWarehouse?->name }}
-        @else
-            {{ ($row->toWarehouse ?? $row->fromWarehouse)?->name }}
-        @endif
-    </x-table.cell>
+    @multiwarehouse
+        <x-table.cell>
+            @if ($direction === 0)
+                {{ $row->fromWarehouse?->name }} &rarr; {{ $row->toWarehouse?->name }}
+            @else
+                {{ ($row->toWarehouse ?? $row->fromWarehouse)?->name }}
+            @endif
+        </x-table.cell>
+    @endmultiwarehouse
     <x-table.cell>
         <span
             dir="ltr"

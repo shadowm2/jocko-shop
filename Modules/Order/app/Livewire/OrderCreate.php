@@ -13,6 +13,11 @@ class OrderCreate extends Component
 {
     use ManagesOrderItems;
 
+    public function mount(): void
+    {
+        $this->form->useFixedWarehouse();
+    }
+
     public function save(): void
     {
         $this->form->save();

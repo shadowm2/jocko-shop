@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Form;
+use Modules\Inventory\Livewire\Concerns\UsesFixedWarehouse;
 use Modules\Inventory\Models\Unit;
 use Modules\Inventory\Models\WarehouseItem;
 use Modules\Inventory\Services\WarehouseItemService;
@@ -16,6 +17,8 @@ use Modules\Order\Services\OrderService;
 
 class OrderForm extends Form
 {
+    use UsesFixedWarehouse;
+
     public ?Order $order = null;
 
     public ?int $user_id = null;
@@ -190,8 +193,14 @@ class OrderForm extends Form
             ->all();
     }
 
+    protected function hasRecord(): bool
+    {
+        return $this->order !== null;
+    }
+
     public function save(): Order
     {
+        $this->useFixedWarehouse();
         $this->syncSelectedItems();
         foreach ($this->items as &$line) {
             $line['quantity'] = $this->number($line['quantity'] ?? 0);

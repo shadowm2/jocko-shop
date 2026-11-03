@@ -122,6 +122,34 @@ test('sync_now pushes the outbox and reports how many events went out', function
         && $r['result']['remaining'] === 0);
 });
 
+test('sync_now with full sends a fresh copy of records that were already sent', function () {
+    fakeControl(1, [['id' => '22222222-2222-4222-8222-222222222222', 'type' => 'sync_now', 'payload' => ['full' => true]]]);
+    Modules\Inventory\Models\Brand::create(['slug' => 'bosch', 'name' => 'Bosch']);
+    // Everything recorded so far counts as delivered; Control "lost" it afterwards.
+    Modules\Control\Models\OutboxEvent::query()->update(['pushed_at' => now()]);
+
+    $this->artisan('control:poll')->assertSuccessful();
+
+    Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/sync/events')
+        && collect($r['events'])->contains(fn (array $event) => $event['event_type'] === 'brand.snapshot' && $event['payload']['name'] === 'Bosch'));
+    Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/ack')
+        && $r['status'] === 'completed'
+        && $r['result']['queued'] >= 1
+        && $r['result']['pushed'] >= 1);
+});
+
+test('sync_now without full does not resend what was already sent', function () {
+    fakeControl(1, [['id' => '22222222-2222-4222-8222-222222222222', 'type' => 'sync_now', 'payload' => ['full' => false]]]);
+    resolve(ControlLink::class)->markSnapshotQueued(); // the one-off first copy is not what is tested here
+    Modules\Inventory\Models\Brand::create(['slug' => 'bosch', 'name' => 'Bosch']);
+    Modules\Control\Models\OutboxEvent::query()->update(['pushed_at' => now()]);
+
+    $this->artisan('control:poll')->assertSuccessful();
+
+    Http::assertNotSent(fn (Request $r) => str_ends_with($r->url(), '/sync/events'));
+    Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/ack') && $r['result']['queued'] === 0 && $r['result']['pushed'] === 0);
+});
+
 test('sync_now fails with the reason when Jocko Control refuses the events', function () {
     Http::fake([
         '*/sync/events' => Http::response(['error' => ['code' => 'shop_suspended', 'message' => 'This shop is suspended.']], 403),

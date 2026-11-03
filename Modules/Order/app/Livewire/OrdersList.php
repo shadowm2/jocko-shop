@@ -6,6 +6,7 @@ use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Modules\Inventory\Livewire\Concerns\InteractsWithTableFilters;
+use Modules\Inventory\Services\WarehouseService;
 use Modules\Order\Enums\OrderStatus;
 use Modules\Order\Enums\PaymentStatus;
 use Modules\Order\Services\OrderService;
@@ -33,11 +34,12 @@ class OrdersList extends Component
 
     public function render(OrderService $orderService): View
     {
+        $multiWarehouse = resolve(WarehouseService::class)->isMultiple();
         $columns = [
             ['label' => __('order::attributes.Order Number')],
             ['label' => __('order::attributes.User Name')],
             ['label' => __('order::attributes.User Car')],
-            ['label' => __('order::attributes.Warehouse')],
+            ...($multiWarehouse ? [['label' => __('order::attributes.Warehouse')]] : []),
             ['label' => __('order::attributes.Items and Total')],
             ['label' => __('order::attributes.Order Status')],
             ['label' => __('order::attributes.Payment Status')],
