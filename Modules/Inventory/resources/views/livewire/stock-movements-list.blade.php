@@ -17,14 +17,14 @@
 
         <x-slot name="action">
             <div class="flex gap-2">
-                @multiwarehouse
+                @if (\Modules\Inventory\Services\WarehouseService::multiple())
                     <flux:button
                         icon:trailing="arrows-right-left"
                         :href="route('stock-movements.transfer')"
                     >
                         {{ __('inventory::strings.Stock Transfer Add') }}
                     </flux:button>
-                @endmultiwarehouse
+                @endif
                 <flux:button
                     icon:trailing="plus"
                     :href="route('stock-movements.create')"

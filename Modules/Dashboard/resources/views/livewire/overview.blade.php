@@ -218,7 +218,7 @@
                             size="sm"
                             class="truncate"
                         >
-                            {{ $order->userCar->car->name }}@multiwarehouse · {{ $order->warehouse->name }}@endmultiwarehouse
+                            {{ $order->userCar->car->name }}@if (\Modules\Inventory\Services\WarehouseService::multiple()) · {{ $order->warehouse->name }}@endif
                         </flux:text>
                     </div>
                     <div class="flex shrink-0 items-center gap-3">
@@ -279,7 +279,7 @@
                         <flux:text
                             size="sm"
                             class="truncate"
-                        >@multiwarehouse{{ $warehouseItem->warehouse->name }}@endmultiwarehouse</flux:text>
+                        >@if (\Modules\Inventory\Services\WarehouseService::multiple()){{ $warehouseItem->warehouse->name }}@endif</flux:text>
                     </div>
                     <div class="shrink-0 text-end text-sm tabular-nums">
                         <div class="font-medium text-red-600 dark:text-red-400">
@@ -322,7 +322,7 @@
                     <flux:text
                         size="sm"
                         class="truncate"
-                    >@multiwarehouse{{ $purchase->warehouse->name }}@endmultiwarehouse</flux:text>
+                    >@if (\Modules\Inventory\Services\WarehouseService::multiple()){{ $purchase->warehouse->name }}@endif</flux:text>
                 </div>
                 <div class="flex shrink-0 items-center gap-3">
                     <span class="tabular-nums text-sm">{{ Utils::formatQuantity($purchase->items_sum_total ?? 0, 2, ',') }}</span>

@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-5">
-    @multiwarehouse
+    @if (\Modules\Inventory\Services\WarehouseService::multiple())
         <livewire:inventory-warehouse-picker />
-    @endmultiwarehouse
+    @endif
     <x-table.data-table
         :$columns
         :$rows

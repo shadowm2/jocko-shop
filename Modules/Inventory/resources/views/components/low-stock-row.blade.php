@@ -2,11 +2,11 @@
     use App\Helpers\Utils;
 @endphp
 <x-table.row>
-    @multiwarehouse
+    @if (\Modules\Inventory\Services\WarehouseService::multiple())
         <x-table.cell>
             {{ $row->warehouse->name }}
         </x-table.cell>
-    @endmultiwarehouse
+    @endif
     <x-table.cell>
         {{ $row->item->name }}
     </x-table.cell>

@@ -23,7 +23,7 @@
             @endif
         </div>
     </x-table.cell>
-    @multiwarehouse
+    @if (\Modules\Inventory\Services\WarehouseService::multiple())
         <x-table.cell>
             @if ($direction === 0)
                 {{ $row->fromWarehouse?->name }} &rarr; {{ $row->toWarehouse?->name }}
@@ -31,7 +31,7 @@
                 {{ ($row->toWarehouse ?? $row->fromWarehouse)?->name }}
             @endif
         </x-table.cell>
-    @endmultiwarehouse
+    @endif
     <x-table.cell>
         <span
             dir="ltr"
