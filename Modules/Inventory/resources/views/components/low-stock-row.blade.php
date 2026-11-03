@@ -2,9 +2,11 @@
     use App\Helpers\Utils;
 @endphp
 <x-table.row>
-    <x-table.cell>
-        {{ $row->warehouse->name }}
-    </x-table.cell>
+    @multiwarehouse
+        <x-table.cell>
+            {{ $row->warehouse->name }}
+        </x-table.cell>
+    @endmultiwarehouse
     <x-table.cell>
         {{ $row->item->name }}
     </x-table.cell>

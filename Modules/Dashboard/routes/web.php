@@ -10,6 +10,7 @@ use Modules\Dashboard\Livewire\CityList;
 use Modules\Dashboard\Livewire\CountryCreate;
 use Modules\Dashboard\Livewire\CountryEdit;
 use Modules\Dashboard\Livewire\CountryList;
+use Modules\Dashboard\Livewire\JockoControlQueue;
 use Modules\Dashboard\Livewire\JockoControlSettings;
 use Modules\Dashboard\Livewire\Overview;
 use Modules\Dashboard\Livewire\ProvinceCreate;
@@ -17,12 +18,15 @@ use Modules\Dashboard\Livewire\ProvinceEdit;
 use Modules\Dashboard\Livewire\ProvinceList;
 use Modules\Dashboard\Livewire\Reports;
 use Modules\Dashboard\Livewire\SystemSettings;
+use Modules\Dashboard\Livewire\WarehouseSettings;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/dashboard', Overview::class)->name('dashboard');
     Route::livewire('/reports', Reports::class)->name('reports.index');
     Route::livewire('/system-settings', SystemSettings::class)->name('system-settings.edit');
     Route::livewire('/settings/jocko-control', JockoControlSettings::class)->name('jocko-control-settings.edit');
+    Route::livewire('/settings/jocko-control/queue', JockoControlQueue::class)->name('jocko-control-queue.index');
+    Route::livewire('/settings/warehouses', WarehouseSettings::class)->name('warehouse-settings.edit');
 
     Route::prefix('countries')->as('countries.')->group(function () {
         Route::livewire('/list', CountryList::class)->name('index');

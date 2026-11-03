@@ -18,6 +18,7 @@ class OrderEdit extends Component
 
     public function mount(Order $order): void
     {
+        $this->order = $order;
         $this->form->setOrder($order);
     }
 
@@ -39,6 +40,9 @@ class OrderEdit extends Component
 
         return view('order::livewire.order-edit', [
             ...compact('userCars', 'users', 'itemCatalog'),
+            // What is saved, not what is being typed: the order's lines and payments as they stand.
+            'total' => (float) $this->order->items()->sum('total'),
+            'paid' => (float) $this->order->payments()->sum('amount'),
         ])
             ->layout('dashboard::layouts.app')
             ->layoutData([

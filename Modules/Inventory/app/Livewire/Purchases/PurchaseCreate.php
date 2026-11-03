@@ -14,6 +14,11 @@ class PurchaseCreate extends Component
     use RemovesPurchaseItems;
     use UsesWarehouseItemPicker;
 
+    public function mount(): void
+    {
+        $this->form->useFixedWarehouse();
+    }
+
     public function save(): void
     {
         if (! $this->form->save()) {

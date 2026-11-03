@@ -6,9 +6,11 @@
 
         <flux:link :href="route('suppliers.edit', ['supplier' => $row->supplier])">{{ $row->supplier->user->fullName() }}</flux:link>
     </x-table.cell>
-    <x-table.cell>
-        <flux:link :href="route('warehouses.edit', ['warehouse' => $row->warehouse])">{{ $row->warehouse->name }}</flux:link>
-    </x-table.cell>
+    @multiwarehouse
+        <x-table.cell>
+            <flux:link :href="route('warehouses.edit', ['warehouse' => $row->warehouse])">{{ $row->warehouse->name }}</flux:link>
+        </x-table.cell>
+    @endmultiwarehouse
     <x-table.cell>
         {{ $row->order_number }}
     </x-table.cell>

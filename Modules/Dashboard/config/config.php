@@ -57,6 +57,56 @@ return [
                 ],
             ],
         ],
+        'payments' => [
+            'label' => 'dashboard::strings.Online Payments',
+            'fields' => [
+                'currency' => [
+                    'label' => 'dashboard::strings.Payments Currency',
+                    'config' => 'payments.currency',
+                    'rules' => 'nullable|in:IRT,IRR',
+                ],
+                'callback_base_url' => [
+                    'label' => 'dashboard::strings.Payments Callback Address',
+                    'config' => 'payments.callback_base_url',
+                    'rules' => 'nullable|url|max:255',
+                ],
+            ],
+        ],
+        'zarinpal' => [
+            'label' => 'dashboard::strings.Zarinpal',
+            'fields' => [
+                'merchant_id' => [
+                    'label' => 'dashboard::strings.Zarinpal Merchant ID',
+                    'secret' => true,
+                    'config' => 'payments.zarinpal.merchant_id',
+                ],
+                'sandbox' => [
+                    'label' => 'dashboard::strings.Gateway Sandbox',
+                    'config' => 'payments.zarinpal.sandbox',
+                    'rules' => 'nullable|in:0,1',
+                ],
+            ],
+        ],
+        'nextpay' => [
+            'label' => 'dashboard::strings.NextPay',
+            'fields' => [
+                'api_key' => [
+                    'label' => 'dashboard::strings.NextPay API Key',
+                    'secret' => true,
+                    'config' => 'payments.nextpay.api_key',
+                ],
+            ],
+        ],
+        'zibal' => [
+            'label' => 'dashboard::strings.Zibal',
+            'fields' => [
+                'merchant' => [
+                    'label' => 'dashboard::strings.Zibal Merchant',
+                    'secret' => true,
+                    'config' => 'payments.zibal.merchant',
+                ],
+            ],
+        ],
         'jocko_control' => [
             'label' => 'dashboard::strings.Jocko Control',
             'fields' => [

@@ -12,4 +12,7 @@ return [
     'Category Updated Successfully' => 'دسته بندی با موفقیت ویرایش شد',
     'Settings Saved Successfully' => 'تنظیمات با موفقیت ذخیره شد',
     'Setting Cleared Successfully' => 'تنظیم با موفقیت پاک شد',
+    'Jocko Control Not Linked' => 'این فروشگاه به جاکو کنترل وصل نیست.',
+    'Queued Changes Sent' => ':count تغییر ارسال شد.',
+    'Refused Changes Queued Again' => 'تغییرات ردشده دوباره در صف قرار گرفتند.',
 ];

@@ -48,6 +48,11 @@
         ['suppliers.create', 'dashboard::strings.New Supplier', 'truck', false],
         ['warehouses.create', 'dashboard::strings.New Warehouse', 'shelving-unit', false],
     ];
+
+    // Same rule as the sidebar: no warehouses to manage while one is in use and chosen.
+    if (! resolve(\Modules\Inventory\Services\WarehouseService::class)->showsWarehouseMenu()) {
+        $actions = array_values(array_filter($actions, fn (array $action): bool => $action[0] !== 'warehouses.create'));
+    }
 @endphp
 
 <div class="flex w-full flex-1 flex-col gap-6">
@@ -181,7 +186,7 @@
                             size="sm"
                             class="truncate"
                         >
-                            {{ $order->userCar->car->name }} · {{ $order->warehouse->name }}
+                            {{ $order->userCar->car->name }}@multiwarehouse · {{ $order->warehouse->name }}@endmultiwarehouse
                         </flux:text>
                     </div>
                     <div class="flex shrink-0 items-center gap-3">
@@ -242,7 +247,7 @@
                         <flux:text
                             size="sm"
                             class="truncate"
-                        >{{ $warehouseItem->warehouse->name }}</flux:text>
+                        >@multiwarehouse{{ $warehouseItem->warehouse->name }}@endmultiwarehouse</flux:text>
                     </div>
                     <div class="shrink-0 text-end text-sm tabular-nums">
                         <div class="font-medium text-red-600 dark:text-red-400">
@@ -285,7 +290,7 @@
                     <flux:text
                         size="sm"
                         class="truncate"
-                    >{{ $purchase->warehouse->name }}</flux:text>
+                    >@multiwarehouse{{ $purchase->warehouse->name }}@endmultiwarehouse</flux:text>
                 </div>
                 <div class="flex shrink-0 items-center gap-3">
                     <span class="tabular-nums text-sm">{{ Utils::formatQuantity($purchase->items_sum_total ?? 0, 2, ',') }}</span>

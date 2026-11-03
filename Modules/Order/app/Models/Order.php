@@ -97,6 +97,14 @@ class Order extends BaseModel
     }
 
     /**
+     * @return HasMany<PaymentAttempt, $this>
+     */
+    public function paymentAttempts(): HasMany
+    {
+        return $this->hasMany(PaymentAttempt::class);
+    }
+
+    /**
      * Uses the eager loaded sums when the list query has them.
      */
     /**

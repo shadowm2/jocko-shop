@@ -149,4 +149,5 @@ return [
     'Low Stock' => 'کمبود موجودی',
     'Low Stock List' => 'لیست کمبود موجودی',
     'Search Low Stock' => 'جستجوی نام کالا',
+    'Stock' => 'موجودی انبار',
 ];

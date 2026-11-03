@@ -1,7 +1,7 @@
 @props(['form', 'itemCatalog' => []])
 <livewire:inventory-warehouse-item-picker
     :warehouse="$form->warehouse"
-    :show-warehouse-picker="true"
+    :show-warehouse-picker="$form->showsWarehousePicker()"
     wire:model="form.selected"
     :label="__('order::attributes.Warehouse Item')"
     :placeholder="__('inventory::strings.Select Warehouse Item')"

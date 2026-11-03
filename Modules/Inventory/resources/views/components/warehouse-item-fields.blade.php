@@ -1,3 +1,4 @@
+@multiwarehouse
 <flux:field>
     <flux:label>
         {{ __('inventory::attributes.Warehouse') }}
@@ -14,6 +15,7 @@
     </flux:select>
     <flux:error name="form.warehouse" />
 </flux:field>
+@endmultiwarehouse
 
 <flux:field>
     <flux:label>

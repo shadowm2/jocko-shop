@@ -17,12 +17,14 @@
 
         <x-slot name="action">
             <div class="flex gap-2">
-                <flux:button
-                    icon:trailing="arrows-right-left"
-                    :href="route('stock-movements.transfer')"
-                >
-                    {{ __('inventory::strings.Stock Transfer Add') }}
-                </flux:button>
+                @multiwarehouse
+                    <flux:button
+                        icon:trailing="arrows-right-left"
+                        :href="route('stock-movements.transfer')"
+                    >
+                        {{ __('inventory::strings.Stock Transfer Add') }}
+                    </flux:button>
+                @endmultiwarehouse
                 <flux:button
                     icon:trailing="plus"
                     :href="route('stock-movements.create')"

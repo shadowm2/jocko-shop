@@ -15,6 +15,7 @@ use Modules\Inventory\Livewire\Purchases\Concerns\UsesWarehouseItemPicker;
 use Modules\Inventory\Models\Purchase;
 use Modules\Inventory\Services\PurchaseService;
 use Modules\Inventory\Services\SupplierService;
+use Modules\Inventory\Services\WarehouseService;
 
 class PurchaseList extends Component
 {
@@ -75,9 +76,7 @@ class PurchaseList extends Component
             [
                 'label' => __('inventory::attributes.Purchase Supplier'),
             ],
-            [
-                'label' => __('inventory::attributes.Purchase Warehouse'),
-            ],
+            ...(resolve(WarehouseService::class)->isMultiple() ? [['label' => __('inventory::attributes.Purchase Warehouse')]] : []),
             [
                 'label' => __('inventory::attributes.Purchase Order Number'),
             ],

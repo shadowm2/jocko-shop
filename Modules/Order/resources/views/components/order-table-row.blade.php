@@ -11,14 +11,18 @@
     <x-table.cell>
         {{ $row->userCar->car->name }}
     </x-table.cell>
+    @multiwarehouse
+        <x-table.cell>
+            {{ $row->warehouse->name }}
+        </x-table.cell>
+    @endmultiwarehouse
     <x-table.cell>
-        {{ $row->warehouse->name }}
-    </x-table.cell>
-    <x-table.cell>
-        <div class="flex flex-col">
-            <span>{{ Utils::pDigits((string) $row->items_count) }} {{ __('order::strings.Order Items') }}</span>
-            <span class="text-xs text-zinc-500">{{ Utils::formatQuantity($row->items_sum_total ?? 0, 2, ',') }} {{ __('order::attributes.Total') }}</span>
-        </div>
+        <x-order::order-amounts
+            compact
+            :items="$row->items_count"
+            :total="(float) ($row->items_sum_total ?? 0)"
+            :paid="(float) ($row->payments_sum_amount ?? 0)"
+        />
     </x-table.cell>
     <x-table.cell>
         <flux:badge :color="$row->status->color()">
@@ -37,6 +41,14 @@
             icon="pencil-square"
             variant="ghost"
         />
+        @if ($row->status !== \Modules\Order\Enums\OrderStatus::CANCELLED && $row->paymentStatus() !== \Modules\Order\Enums\PaymentStatus::PAID)
+            <flux:button
+                href="{{ route('orders.pay', ['order' => $row]) }}"
+                :tooltip="__('order::strings.Collect Payment')"
+                icon="banknotes"
+                variant="ghost"
+            />
+        @endif
         <flux:button
             href="{{ route('orders.invoice', ['order' => $row]) }}"
             target="_blank"

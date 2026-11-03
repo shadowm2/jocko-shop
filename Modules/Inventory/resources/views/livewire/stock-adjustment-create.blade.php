@@ -15,7 +15,7 @@
             >
                 @foreach ($warehouseItems as $warehouseItem)
                     <flux:select.option :value="$warehouseItem->slug">
-                        {{ $warehouseItem->warehouse->name }} — {{ $warehouseItem->item->name }}
+                        @multiwarehouse{{ $warehouseItem->warehouse->name }} — @endmultiwarehouse{{ $warehouseItem->item->name }}
                         ({{ __('inventory::strings.In Stock') }}: {{ Utils::formatQuantity($warehouseItem->quantity, 3, ',') }})
                     </flux:select.option>
                 @endforeach

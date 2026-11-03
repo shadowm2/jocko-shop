@@ -145,4 +145,5 @@ return [
     'Low Stock' => 'Low stock',
     'Low Stock List' => 'Low stock list',
     'Search Low Stock' => 'Search by item name',
+    'Stock' => 'Stock',
 ];
