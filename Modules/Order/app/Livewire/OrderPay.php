@@ -136,6 +136,31 @@ class OrderPay extends Component
         Flux::toast(__('order::strings.Link Sent'), variant: 'success');
     }
 
+    /**
+     * Give a confirmed online payment of this order back to the customer's card.
+     */
+    public function refund(string $attemptId, PaymentAttemptService $attempts): void
+    {
+        // The id comes from the browser: only this order's own payments can be refunded.
+        $attempt = $this->order->paymentAttempts()->where('public_id', $attemptId)->first();
+
+        if ($attempt === null) {
+            return;
+        }
+
+        try {
+            $attempts->refund($attempt);
+        } catch (InvalidArgumentException|GatewayException $e) {
+            Flux::toast($e->getMessage(), variant: 'danger');
+
+            return;
+        }
+
+        Flux::toast(__('order::strings.Refund Done'), variant: 'success');
+        $balance = $attempts->balance($this->order->refresh());
+        $this->amount = $balance > 0 ? (string) $balance : '';
+    }
+
     public function confirmCard(PaymentAttemptService $attempts): void
     {
         $attempt = $this->attempt();
@@ -222,6 +247,7 @@ class OrderPay extends Component
                 ? QrCode::svg($open->pay_url)
                 : null,
             'history' => $order->paymentAttempts()->latest('id')->limit(8)->get(),
+            'canRefund' => fn (PaymentAttempt $attempt): bool => $attempts->canRefund($attempt),
             'gateways' => $drivers->configuredGateways(),
             'terminals' => $drivers->terminals(),
             'callbackBase' => rtrim((string) (config('payments.callback_base_url') ?: config('app.url')), '/'),

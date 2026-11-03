@@ -89,4 +89,8 @@ return [
     'Link Sent' => 'The payment link was sent.',
     'Link Not Sent' => 'The link could not be sent: :reason',
     'Payment Link Sms' => ':shop - pay :amount for order :order: :url',
+    'Refund' => 'Refund',
+    'Refunded' => 'Refunded',
+    'Refund Confirm' => 'Give this payment back to the customer\'s card? This cannot be undone.',
+    'Refund Done' => 'The payment was refunded.',
 ];

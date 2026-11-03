@@ -101,4 +101,8 @@ return [
     'Link Sent' => 'پیوند پرداخت فرستاده شد.',
     'Link Not Sent' => 'ارسال پیوند ممکن نشد: :reason',
     'Payment Link Sms' => ':shop - پرداخت :amount برای سفارش :order: :url',
+    'Refund' => 'بازپرداخت',
+    'Refunded' => 'بازپرداخت‌شده',
+    'Refund Confirm' => 'این پرداخت به کارت مشتری برگردانده شود؟ این کار قابل بازگشت نیست.',
+    'Refund Done' => 'پرداخت بازپرداخت شد.',
 ];

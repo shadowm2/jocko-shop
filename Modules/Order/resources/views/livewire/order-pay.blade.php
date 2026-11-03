@@ -147,6 +147,11 @@
                             @if ($past->failure && $past->status !== PaymentAttemptStatus::PAID)
                                 <span class="max-w-xs truncate text-xs text-zinc-500" title="{{ $past->failure }}">{{ $past->failure }}</span>
                             @endif
+                            @if ($past->refunded_at)
+                                <flux:badge size="sm" color="zinc">{{ __('order::strings.Refunded') }}</flux:badge>
+                            @elseif ($canRefund($past))
+                                <flux:button size="xs" variant="ghost" icon="arrow-uturn-left" wire:click="refund('{{ $past->public_id }}')" wire:confirm="{{ __('order::strings.Refund Confirm') }}" data-refund="{{ $past->public_id }}">{{ __('order::strings.Refund') }}</flux:button>
+                            @endif
                             <span class="font-medium">{{ $money($past->amount) }}</span>
                         </div>
                     </div>

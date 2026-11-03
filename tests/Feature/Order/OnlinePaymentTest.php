@@ -650,3 +650,106 @@ it('keeps the payment open and allows a retry when the SMS cannot be sent', func
 
     expect(PaymentAttempt::sole()->status)->toBe(PaymentAttemptStatus::PENDING);
 });
+
+// ---------------------------------------------------------------------------
+// Refunds (NextPay)
+// ---------------------------------------------------------------------------
+
+/**
+ * Http::fake() only adds stubs and the first match wins, so start from a clean one.
+ *
+ * @param  array<string, mixed>  $body
+ */
+function nextPayRefundAnswers(array $body): void
+{
+    Http::swap(new Illuminate\Http\Client\Factory);
+    Http::preventStrayRequests();
+    Http::fake(['*/nx/gateway/verify' => Http::response($body)]);
+}
+
+function paidNextPay(): PaymentAttempt
+{
+    Http::swap(new Illuminate\Http\Client\Factory);
+    Http::preventStrayRequests();
+    Http::fake([
+        '*/nx/gateway/token' => Http::response(['code' => -1, 'trans_id' => 'f7c07568-c6d1-4bee-87b1-4a9e5ed2e4c1']),
+        '*/nx/gateway/verify' => Http::response(['code' => 0, 'Shaparak_Ref_Id' => '990011', 'card_holder' => '5022-29**-****-5020']),
+    ]);
+    $service = resolve(PaymentAttemptService::class);
+    $order = Order::firstOrFail();
+
+    return $service->reconcile($service->startOnline($order, 'nextpay', 40000));
+}
+
+it('gives a NextPay payment back within its window and records it as a negative payment', function () {
+    $attempt = paidNextPay();
+    expect(($this->service)()->balance($this->order))->toBe(60000.0)->and(($this->service)()->canRefund($attempt))->toBeTrue();
+    nextPayRefundAnswers(['code' => -90, 'amount' => 40000]);
+
+    $attempt = ($this->service)()->refund($attempt);
+
+    $refund = ($this->sent)('/verify')->last();
+    expect($refund['refund_request'])->toBe('yes_money_back')
+        ->and($refund['trans_id'])->toBe('f7c07568-c6d1-4bee-87b1-4a9e5ed2e4c1')
+        ->and($attempt->refunded_at)->not->toBeNull()
+        ->and((float) Payment::findOrFail($attempt->refund_payment_id)->amount)->toBe(-40000.0)
+        ->and(($this->service)()->balance($this->order))->toBe(100000.0, 'the order owes everything again')
+        ->and(($this->service)()->canRefund($attempt))->toBeFalse();
+});
+
+it('refunds only once', function () {
+    $attempt = paidNextPay();
+    nextPayRefundAnswers(['code' => -90]);
+    ($this->service)()->refund($attempt);
+
+    expect(fn () => ($this->service)()->refund($attempt->fresh()))->toThrow(InvalidArgumentException::class)
+        ->and(Payment::where('amount', '<', 0)->count())->toBe(1);
+});
+
+it('cannot refund once the gateway\'s window has passed', function () {
+    $attempt = paidNextPay();
+    $this->travel(21)->minutes();
+
+    expect(($this->service)()->canRefund($attempt->fresh()))->toBeFalse()
+        ->and(fn () => ($this->service)()->refund($attempt->fresh()))->toThrow(InvalidArgumentException::class, 'no longer');
+});
+
+it('records nothing when the gateway does not give the money back', function () {
+    $attempt = paidNextPay();
+    nextPayRefundAnswers(['code' => -91]);
+
+    expect(fn () => ($this->service)()->refund($attempt))->toThrow(GatewayException::class, '-91');
+
+    expect($attempt->fresh()->refunded_at)->toBeNull()->and(Payment::where('amount', '<', 0)->count())->toBe(0);
+});
+
+it('has no refund for gateways whose refund call is not known, or for a payment that is not paid', function () {
+    fakeZarinpal();
+    $attempt = ($this->service)()->startOnline($this->order, 'zarinpal', 40000);
+    expect(($this->service)()->canRefund($attempt))->toBeFalse();
+
+    ($this->service)()->reconcile($attempt);
+    expect(($this->service)()->canRefund($attempt->fresh()))->toBeFalse();
+});
+
+it('offers the refund on the cashier screen and gives the money back from there', function () {
+    $attempt = paidNextPay();
+    nextPayRefundAnswers(['code' => -90]);
+
+    Livewire::test(OrderPay::class, ['order' => $this->order->fresh()])
+        ->assertSee('data-refund="'.$attempt->public_id.'"', false)
+        ->call('refund', $attempt->public_id)
+        ->assertDontSee('data-refund=', false)
+        ->assertSee(__('order::strings.Refunded'))
+        ->assertSet('amount', '100000');
+});
+
+it('will not refund a payment of another order from this screen', function () {
+    $attempt = paidNextPay();
+    $other = Order::forceCreate(['slug' => 'o2', 'user_id' => 1, 'user_car_id' => 1, 'warehouse_id' => $this->order->warehouse_id, 'order_number' => 'ORD-2', 'status' => OrderStatus::PENDING]);
+    OrderItem::forceCreate(['slug' => 'oi2', 'order_id' => $other->id, 'item_id' => 1, 'unit_id' => 1, 'quantity' => 1, 'unit_price' => 5000, 'total' => 5000]);
+
+    Livewire::test(OrderPay::class, ['order' => $other])->call('refund', $attempt->public_id);
+
+    expect($attempt->fresh()->refunded_at)->toBeNull();
+});

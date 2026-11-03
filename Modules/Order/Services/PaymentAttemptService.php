@@ -15,6 +15,7 @@ use Modules\Order\Payments\GatewayException;
 use Modules\Order\Payments\GatewayVerification;
 use Modules\Order\Payments\PaymentDrivers;
 use Modules\Order\Payments\PaymentGateway;
+use Modules\Order\Payments\RefundableGateway;
 use Modules\Order\Payments\VerifyOutcome;
 
 /**
@@ -198,6 +199,59 @@ class PaymentAttemptService
         }
 
         return $attempt->isOpen() ? $this->finish($attempt, PaymentAttemptStatus::CANCELLED, 'Cancelled by the cashier.') : $attempt;
+    }
+
+    /**
+     * Whether the money of this payment can still be given back from here.
+     */
+    public function canRefund(PaymentAttempt $attempt): bool
+    {
+        $gateway = $this->gatewayOf($attempt);
+
+        return $attempt->status === PaymentAttemptStatus::PAID
+            && $attempt->refunded_at === null
+            && $gateway instanceof RefundableGateway
+            && $gateway->canRefund($attempt);
+    }
+
+    /**
+     * Give a confirmed online payment back. The gateway returns the money to the
+     * customer's card; the shop records it as a negative payment so what the order
+     * owes and every report follow. Done once.
+     *
+     * @throws InvalidArgumentException when this payment cannot be refunded
+     * @throws GatewayException when the gateway refuses or cannot be reached
+     */
+    public function refund(PaymentAttempt $attempt): PaymentAttempt
+    {
+        $gateway = $this->gatewayOf($attempt);
+
+        if (! $this->canRefund($attempt) || ! $gateway instanceof RefundableGateway) {
+            throw new InvalidArgumentException('This payment can no longer be refunded.');
+        }
+
+        // One refund at a time: a double click must not ask the gateway twice.
+        return DB::transaction(function () use ($attempt, $gateway): PaymentAttempt {
+            $locked = PaymentAttempt::query()->whereKey($attempt->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($locked->refunded_at !== null) {
+                throw new InvalidArgumentException('This payment was already refunded.');
+            }
+
+            $gateway->refund($locked);
+
+            $refund = $this->payments->create([
+                'order' => $locked->order->slug,
+                'amount' => -1 * (float) $locked->amount,
+                'method' => PaymentMethod::ONLINE->value,
+                'paid_at' => now()->toDateString(),
+                'description' => trim($this->label($locked).' '.__('order::strings.Refund').' #'.($locked->result_reference ?? '')),
+            ]);
+
+            $locked->update(['refunded_at' => now(), 'refund_payment_id' => $refund->getKey()]);
+
+            return $locked;
+        });
     }
 
     /**
