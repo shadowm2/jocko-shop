@@ -23,6 +23,13 @@
             icon="car"
         />
         <flux:button
+            :tooltip="__('order::strings.Statement')"
+            :href="route('users.statement', ['user' => $row])"
+            target="_blank"
+            variant="ghost"
+            icon="document-text"
+        />
+        <flux:button
             :tooltip="__('user::strings.Edit User')"
             :href="route('users.edit', ['user' => $row])"
             icon="pencil-square"
