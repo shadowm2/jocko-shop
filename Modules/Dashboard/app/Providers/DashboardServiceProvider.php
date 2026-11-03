@@ -3,6 +3,11 @@
 namespace Modules\Dashboard\Providers;
 
 use App\Providers\BaseModuleServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use Modules\Dashboard\Console\ListBackupsCommand;
+use Modules\Dashboard\Console\RestoreBackupCommand;
+use Modules\Dashboard\Console\RunBackupCommand;
+use Modules\Dashboard\Console\VerifyBackupCommand;
 use Modules\Dashboard\Services\SettingService;
 
 class DashboardServiceProvider extends BaseModuleServiceProvider
@@ -22,7 +27,12 @@ class DashboardServiceProvider extends BaseModuleServiceProvider
      *
      * @var string[]
      */
-    // protected array $commands = [];
+    protected array $commands = [
+        RunBackupCommand::class,
+        RestoreBackupCommand::class,
+        ListBackupsCommand::class,
+        VerifyBackupCommand::class,
+    ];
 
     /**
      * Provider classes to register.
@@ -39,5 +49,13 @@ class DashboardServiceProvider extends BaseModuleServiceProvider
         parent::boot();
 
         resolve(SettingService::class)->applyToConfig();
+    }
+
+    /**
+     * One backup a day, off the busy hours.
+     */
+    protected function configureSchedules(Schedule $schedule): void
+    {
+        $schedule->command(RunBackupCommand::class)->dailyAt((string) config('backup.at'))->withoutOverlapping(60);
     }
 }

@@ -274,4 +274,12 @@ return [
     'Zibal Merchant' => 'Zibal merchant (use "zibal" to test)',
     'Collected Today' => 'Collected today',
     'No payments today' => 'No payments today',
+    'Backups' => 'Backups',
+    'Backups Description' => 'An encrypted copy of the whole database is taken every night and the newest :keep are kept.',
+    'Back Up Now' => 'Back up now',
+    'Download' => 'Download',
+    'No Backup Yet' => 'There is no backup yet. Take one now, and keep a copy somewhere other than this computer.',
+    'Last Backup Failed' => 'The last backup failed: :message',
+    'Backups Safety' => 'A backup can only be read with this shop\'s APP_KEY (or the BACKUP_PASSPHRASE if one is set), so keep that safe. Copy the files off this computer too.',
+    'Backups Copy' => 'A second copy goes to :path.',
 ];

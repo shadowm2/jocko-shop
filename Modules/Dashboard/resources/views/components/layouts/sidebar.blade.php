@@ -519,7 +519,7 @@
                     icon="wrench"
                     :heading="__('dashboard::strings.General')"
                     class="grid first-level"
-                    :expanded="request()->routeIs(['countries.*', 'provinces.*', 'cities.*', 'categories.*', 'system-settings.*', 'jocko-control-settings.*', 'jocko-control-queue.*', 'warehouse-settings.*'])"
+                    :expanded="request()->routeIs(['countries.*', 'provinces.*', 'cities.*', 'categories.*', 'system-settings.*', 'jocko-control-settings.*', 'jocko-control-queue.*', 'warehouse-settings.*', 'backups.*'])"
                 >
                     <flux:sidebar.item
                         icon="globe-alt"
@@ -534,6 +534,9 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="queue-list" :href="route('jocko-control-queue.index')" :current="request()->routeIs('jocko-control-queue.index')" wire:navigate>
                         {{ __('dashboard::strings.Queued Changes') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="circle-stack" :href="route('backups.index')" :current="request()->routeIs('backups.*')" wire:navigate>
+                        {{ __('dashboard::strings.Backups') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="shelving-unit" :href="route('warehouse-settings.edit')" :current="request()->routeIs('warehouse-settings.edit')" wire:navigate>
                         {{ __('dashboard::strings.Warehouse Settings') }}
