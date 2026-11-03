@@ -65,6 +65,30 @@ class ControlClient
     }
 
     /**
+     * Upload the preview of one picture (see MediaUploader). Repeating the same
+     * file is harmless.
+     *
+     * @return 'stored'|'already_stored'
+     *
+     * @throws ControlException
+     */
+    public function pushFile(int $mediaId, string $sha256, string $mime, string $bytes): string
+    {
+        try {
+            // Not JSON: a JSON content type would survive into the multipart request.
+            $response = $this->http(json: false)
+                ->attach('file', $bytes, $sha256.($mime === 'image/png' ? '.png' : '.jpg'), ['Content-Type' => $mime])
+                ->post('sync/files', ['media_id' => (string) $mediaId, 'sha256' => $sha256]);
+        } catch (ConnectionException $e) {
+            throw ControlException::unreachable($e);
+        }
+
+        $this->ensureSucceeded($response);
+
+        return $this->data($response)['status'] === 'already_stored' ? 'already_stored' : 'stored';
+    }
+
+    /**
      * @return list<array<string, mixed>>
      *
      * @throws ControlException
@@ -105,6 +129,16 @@ class ControlClient
             throw ControlException::unreachable($e);
         }
 
+        $this->ensureSucceeded($response);
+
+        return $response;
+    }
+
+    /**
+     * @throws ControlException
+     */
+    private function ensureSucceeded(Response $response): void
+    {
         if ($response->failed()) {
             throw new ControlException(
                 (string) ($response->json('error.message') ?? "Jocko Control answered HTTP {$response->status()}."),
@@ -112,8 +146,6 @@ class ControlClient
                 $response->status(),
             );
         }
-
-        return $response;
     }
 
     /**
@@ -135,7 +167,7 @@ class ControlClient
     /**
      * @throws ControlException
      */
-    private function http(): PendingRequest
+    private function http(bool $json = true): PendingRequest
     {
         if (! $this->isConfigured()) {
             throw ControlException::notConfigured();
@@ -148,14 +180,15 @@ class ControlClient
             throw ControlException::insecureUrl();
         }
 
-        return Http::baseUrl($url.'/api/v1/')
+        $request = Http::baseUrl($url.'/api/v1/')
             ->withToken((string) config('control.token'))
             ->acceptJson()
-            ->asJson()
             ->withUserAgent('jocko-shop')
             ->timeout((int) config('control.timeout'))
             ->connectTimeout((int) config('control.connect_timeout'))
             // A redirect means the URL is wrong; never follow it with the token.
             ->withoutRedirecting();
+
+        return $json ? $request->asJson() : $request;
     }
 }

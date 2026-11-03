@@ -7,6 +7,7 @@ use Modules\Car\Models\UserCar;
 use Modules\Dashboard\Models\Category;
 use Modules\Dashboard\Models\City;
 use Modules\Dashboard\Models\Country;
+use Modules\Dashboard\Models\Media;
 use Modules\Dashboard\Models\Province;
 use Modules\Inventory\Models\Brand;
 use Modules\Inventory\Models\Item;
@@ -81,10 +82,28 @@ return [
             Supplier::class => ['type' => 'supplier', 'fields' => ['slug', 'user_id', 'phone', 'city_id', 'address', 'postal_code', 'website', 'tax_number', 'is_active', 'notes']],
             Purchase::class => ['type' => 'purchase', 'fields' => ['slug', 'supplier_id', 'warehouse_id', 'order_number', 'status', 'ordered_at', 'expected_at', 'received_at', 'notes', 'created_by']],
             PurchaseItem::class => ['type' => 'purchase_item', 'fields' => ['slug', 'purchase_id', 'item_id', 'unit_id', 'quantity', 'received_quantity', 'unit_price', 'discount', 'tax', 'total']],
+            // The pictures of the records above. model_type/model_id only say which record
+            // a picture belongs to; they are sent as owner_type/owner_id (see SyncEntities).
+            // The file itself goes separately, as a small preview (see `files`).
+            Media::class => ['type' => 'media', 'fields' => ['model_type', 'model_id', 'collection', 'mime_type', 'order', 'original_name']],
             Country::class => ['type' => 'country', 'fields' => ['name', 'code', 'code3', 'phone_code', 'is_active']],
             Province::class => ['type' => 'province', 'fields' => ['country_id', 'name', 'slug', 'is_active']],
             City::class => ['type' => 'city', 'fields' => ['province_id', 'name', 'slug', 'is_active']],
         ],
+    ],
+
+    /*
+    | Pictures. Jocko Control never receives the original files, only a downsized
+    | copy (longest side `max_dimension`, JPEG at `quality`; PNGs with transparency
+    | stay PNG) sent to POST /api/v1/sync/files before the picture's event.
+    | `max_per_batch` caps how many are sent per push so a first sync of a big
+    | catalogue cannot hold up the heartbeat.
+    */
+    'files' => [
+        'max_dimension' => 800,
+        'quality' => 80,
+        'max_bytes' => 1_500_000,
+        'max_per_batch' => 25,
     ],
 
     'diagnostics' => [

@@ -4,6 +4,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Modules\Control\Services\ControlLink;
 
 beforeEach(function () {
@@ -49,9 +50,27 @@ test('the heartbeat reports version, schema, health and queue depth but claims n
             && $body['local_status']['database_ok'] === true
             && $body['local_status']['state'] === 'idle'
             && $body['local_status']['pending_events'] === 0
+            && $body['local_status']['oldest_pending_seconds'] === 0
             && ! array_key_exists('sync', $body);
     });
     expect(resolve(ControlLink::class)->lastContactAt())->not->toBeNull();
+});
+
+test('the heartbeat says how long the oldest unsent change has been waiting', function () {
+    fakeControl();
+    $this->travelTo(now()->startOfSecond());
+
+    $waiting = fn (Carbon\CarbonInterface $at, array $extra = []) => Modules\Control\Models\OutboxEvent::query()->insert([
+        'event_id' => (string) Str::uuid(), 'event_type' => 'brand.updated', 'aggregate_type' => 'brand',
+        'aggregate_id' => (string) Str::uuid(), 'payload' => '{}', 'occurred_at' => $at, 'created_at' => $at, 'updated_at' => $at,
+    ] + $extra);
+
+    $waiting(now()->subMinutes(20));
+    $waiting(now()->subMinute());
+    $waiting(now()->subDay(), ['pushed_at' => now()->subDay()]); // already sent: not waiting
+
+    expect(resolve(Modules\Control\Services\DeviceStatus::class)->heartbeatPayload()['local_status'])
+        ->toMatchArray(['pending_events' => 2, 'oldest_pending_seconds' => 1200]);
 });
 
 test('it is registered with the scheduler only when configured', function () {

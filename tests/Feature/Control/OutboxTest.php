@@ -159,5 +159,5 @@ test('every configured model exists and is observed', function () {
             ->and($class::getEventDispatcher())->not->toBeNull();
     }
 
-    expect(resolve(SyncEntities::class)->models())->toHaveCount(23);
+    expect(resolve(SyncEntities::class)->models())->toHaveCount(24);
 });

@@ -4,6 +4,7 @@ namespace Modules\Control\Services;
 
 use Composer\InstalledVersions;
 use Illuminate\Container\Attributes\Singleton;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Modules\Control\Models\OutboxEvent;
 use Throwable;
@@ -79,6 +80,7 @@ class DeviceStatus
             'local_status' => array_filter([
                 'state' => $databaseOk ? 'idle' : 'error',
                 'pending_events' => $databaseOk ? $this->pendingEvents() : null,
+                'oldest_pending_seconds' => $databaseOk ? $this->oldestPendingSeconds() : null,
                 'database_ok' => $databaseOk,
                 'disk_free_mb' => $this->diskFreeMb(),
             ], fn (mixed $value) => $value !== null),
@@ -99,6 +101,21 @@ class DeviceStatus
     {
         try {
             return OutboxEvent::query()->pending()->count();
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * How long the oldest unsent change has been waiting (0 when none is), so
+     * Jocko Control can tell a quiet shop from one that cannot get through.
+     */
+    public function oldestPendingSeconds(): ?int
+    {
+        try {
+            $oldest = OutboxEvent::query()->pending()->min('created_at');
+
+            return $oldest === null ? 0 : max(0, (int) abs(now()->diffInSeconds(Date::parse($oldest), false)));
         } catch (Throwable) {
             return null;
         }
