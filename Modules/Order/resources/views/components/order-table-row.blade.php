@@ -11,11 +11,11 @@
     <x-table.cell>
         {{ $row->userCar->car->name }}
     </x-table.cell>
-    @multiwarehouse
+    @if (\Modules\Inventory\Services\WarehouseService::multiple())
         <x-table.cell>
             {{ $row->warehouse->name }}
         </x-table.cell>
-    @endmultiwarehouse
+    @endif
     <x-table.cell>
         <x-order::order-amounts
             compact

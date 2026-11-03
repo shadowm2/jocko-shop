@@ -44,12 +44,12 @@
             <dt class="text-zinc-500">{{ __('order::attributes.User Car') }}</dt>
             <dd class="font-medium">{{ $order->userCar->car->name }}</dd>
         </div>
-        @multiwarehouse
+        @if (\Modules\Inventory\Services\WarehouseService::multiple())
             <div>
                 <dt class="text-zinc-500">{{ __('order::attributes.Warehouse') }}</dt>
                 <dd class="font-medium">{{ $order->warehouse->name }}</dd>
             </div>
-        @endmultiwarehouse
+        @endif
     </dl>
 
     <table class="w-full border-collapse">

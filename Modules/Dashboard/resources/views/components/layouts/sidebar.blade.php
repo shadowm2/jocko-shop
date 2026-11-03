@@ -278,7 +278,7 @@
                         >
                             {{ __('inventory::strings.Stock Adjustment Add') }}
                         </flux:sidebar.item>
-                        @multiwarehouse
+                        @if (\Modules\Inventory\Services\WarehouseService::multiple())
                         <flux:sidebar.item
                             icon:trailing="plus"
                             :href="route('stock-movements.transfer')"
@@ -287,7 +287,7 @@
                         >
                             {{ __('inventory::strings.Stock Transfer Add') }}
                         </flux:sidebar.item>
-                        @endmultiwarehouse
+                        @endif
                     </flux:sidebar.group>
                     <flux:sidebar.group
                         expandable

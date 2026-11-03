@@ -1,4 +1,4 @@
-@multiwarehouse
+@if (\Modules\Inventory\Services\WarehouseService::multiple())
 <flux:field>
     <flux:label>
         {{ __('inventory::attributes.Warehouse') }}
@@ -15,7 +15,7 @@
     </flux:select>
     <flux:error name="form.warehouse" />
 </flux:field>
-@endmultiwarehouse
+@endif
 
 <flux:field>
     <flux:label>

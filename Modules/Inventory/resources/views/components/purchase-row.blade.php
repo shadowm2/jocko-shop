@@ -6,11 +6,11 @@
 
         <flux:link :href="route('suppliers.edit', ['supplier' => $row->supplier])">{{ $row->supplier->user->fullName() }}</flux:link>
     </x-table.cell>
-    @multiwarehouse
+    @if (\Modules\Inventory\Services\WarehouseService::multiple())
         <x-table.cell>
             <flux:link :href="route('warehouses.edit', ['warehouse' => $row->warehouse])">{{ $row->warehouse->name }}</flux:link>
         </x-table.cell>
-    @endmultiwarehouse
+    @endif
     <x-table.cell>
         {{ $row->order_number }}
     </x-table.cell>

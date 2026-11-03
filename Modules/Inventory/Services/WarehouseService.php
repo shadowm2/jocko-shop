@@ -53,6 +53,15 @@ class WarehouseService extends BaseService
      * warehouses menu). Until someone decides in the settings, a shop that
      * already has more than one warehouse keeps working as before.
      */
+    /**
+     * Shorthand for views: `@if (WarehouseService::multiple())`. Views use this instead of
+     * a custom Blade directive, which Blaze (the component optimiser) does not always know.
+     */
+    public static function multiple(): bool
+    {
+        return resolve(self::class)->isMultiple();
+    }
+
     public function isMultiple(): bool
     {
         $setting = resolve(SettingService::class)->all()[self::SETTING_MULTIPLE] ?? null;
