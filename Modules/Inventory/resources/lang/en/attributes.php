@@ -68,4 +68,5 @@ return [
     'Destination Warehouse' => 'Destination warehouse',
     'Stock Status' => 'Stock status',
     'Stock Shortfall' => 'Shortfall',
+    'Is Service' => 'Service (no stock)',
 ];

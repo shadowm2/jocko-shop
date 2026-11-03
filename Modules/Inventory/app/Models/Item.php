@@ -16,18 +16,25 @@ use Modules\Inventory\Database\Factories\ItemFactory;
  * @property int $id
  * @property string $name
  * @property string $slug
+ * @property bool $is_service
  * @property-read Category $category
  * @property-read UnitGroup $unitGroup
  *
  * @extends BaseModel<Item>
  */
-#[Fillable(['name', 'slug', 'unit_group_id', 'category_id', 'description', 'is_active'])]
+#[Fillable(['name', 'slug', 'unit_group_id', 'category_id', 'description', 'is_active', 'is_service'])]
 class Item extends BaseModel
 {
     /**
      * @use HasFactory<ItemFactory>
      */
     use HasFactory;
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return [...parent::casts(), 'is_service' => 'boolean'];
+    }
 
     protected static function newFactory(): ItemFactory
     {

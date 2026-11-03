@@ -70,7 +70,7 @@ return [
             CarCompany::class => ['type' => 'car_company', 'fields' => ['slug', 'name']],
             Car::class => ['type' => 'car', 'fields' => ['slug', 'car_company_id', 'name']],
             Color::class => ['type' => 'color', 'fields' => ['slug', 'name', 'title', 'hex']],
-            Item::class => ['type' => 'item', 'fields' => ['category_id', 'unit_group_id', 'name', 'slug', 'description', 'is_active']],
+            Item::class => ['type' => 'item', 'fields' => ['category_id', 'unit_group_id', 'name', 'slug', 'description', 'is_active', 'is_service']],
             ItemBrand::class => ['type' => 'item_brand', 'fields' => ['slug', 'item_id', 'brand_id', 'sku', 'barcode', 'part_number', 'purchase_price', 'sale_price', 'is_active']],
             Brand::class => ['type' => 'brand', 'fields' => ['slug', 'name', 'description', 'is_active']],
             Category::class => ['type' => 'category', 'fields' => ['parent_id', 'name', 'slug', 'type', 'depth', 'description', 'icon', 'is_active', 'sort_order']],

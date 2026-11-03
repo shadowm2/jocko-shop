@@ -3,7 +3,9 @@
 namespace Modules\Inventory\Livewire\Forms;
 
 use Exception;
+use Illuminate\Validation\Rule;
 use Livewire\Form;
+use Modules\Inventory\Models\Item;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Models\WarehouseItem;
 use Modules\Inventory\Services\WarehouseItemService;
@@ -32,7 +34,7 @@ class WarehouseItemForm extends Form
     public function getRules(): array
     {
         return [
-            'item' => 'required|exists:Modules\Inventory\Models\Item,slug',
+            'item' => ['required', Rule::exists(Item::class, 'slug')->where('is_service', false)],
             'warehouse' => 'required|string|exists:Modules\Inventory\Models\Warehouse,slug',
             'quantity' => 'required|numeric|min:0',
             'min_quantity' => 'exclude_if:min_quantity_unlimited,true|nullable|numeric|min:0',

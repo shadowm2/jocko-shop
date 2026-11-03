@@ -24,6 +24,8 @@ class ItemForm extends ImageForm
 
     public bool $is_active = true;
 
+    public bool $is_service = false;
+
     public string $description = '';
 
     /** @return array<string, mixed> */
@@ -39,6 +41,7 @@ class ItemForm extends ImageForm
             ],
             'unit_group' => ['required', 'string', 'exists:Modules\Inventory\Models\UnitGroup,'.new UnitGroup()->getRouteKeyName()],
             'is_active' => 'nullable|boolean',
+            'is_service' => 'nullable|boolean',
             ...$this->getImageRules($this->item?->images),
         ];
 
@@ -67,6 +70,7 @@ class ItemForm extends ImageForm
         $this->category = $item->category->slug;
         $this->unit_group = $item->unitGroup->slug;
         $this->is_active = $item->is_active;
+        $this->is_service = $item->is_service;
         $this->setPreviousImages($item->images);
     }
 
@@ -77,6 +81,7 @@ class ItemForm extends ImageForm
             'name' => __('inventory::attributes.Item Name'),
             'description' => __('inventory::attributes.Item Description'),
             'is_active' => __('inventory::attributes.Is Active'),
+            'is_service' => __('inventory::attributes.Is Service'),
             'logo' => __('inventory::attributes.Item Logo'),
             'category' => __('inventory::attributes.Item Category'),
         ];

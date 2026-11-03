@@ -68,4 +68,5 @@ return [
     'Destination Warehouse' => 'انبار مقصد',
     'Stock Status' => 'وضعیت موجودی',
     'Stock Shortfall' => 'کمبود',
+    'Is Service' => 'خدمت (بدون موجودی)',
 ];

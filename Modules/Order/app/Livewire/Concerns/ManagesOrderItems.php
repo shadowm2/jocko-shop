@@ -32,6 +32,16 @@ trait ManagesOrderItems
         $this->form->syncSelectedItems();
     }
 
+    public function addService(): void
+    {
+        $this->form->addService();
+    }
+
+    public function removeService(string $slug): void
+    {
+        $this->form->removeService($slug);
+    }
+
     public function removeOrderItem(string $slug): void
     {
         $this->form->removeOrderItem($slug);
