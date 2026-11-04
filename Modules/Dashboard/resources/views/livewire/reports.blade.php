@@ -100,6 +100,48 @@
         </flux:card>
     </div>
 
+    {{-- Profit --}}
+    <flux:card class="space-y-4" data-profit>
+        <div>
+            <flux:heading>{{ __('dashboard::strings.Profit') }}</flux:heading>
+            <flux:text size="sm">{{ __('dashboard::strings.Profit Hint') }}</flux:text>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div>
+                <flux:text size="sm">{{ __('dashboard::strings.Parts Profit') }}</flux:text>
+                <div class="text-2xl font-semibold tabular-nums" data-parts-profit="{{ $profit['parts_profit'] }}">{{ $money($profit['parts_profit']) }}</div>
+                <flux:text size="sm">
+                    {{ $profit['margin'] === null ? '—' : __('dashboard::strings.Margin', ['percent' => Utils::pDigits((string) $profit['margin'])]) }}
+                </flux:text>
+            </div>
+            <div>
+                <flux:text size="sm">{{ __('dashboard::strings.Parts Cost') }}</flux:text>
+                <div class="text-2xl font-semibold tabular-nums" data-parts-cost="{{ $profit['parts_cost'] }}">{{ $money($profit['parts_cost']) }}</div>
+                <flux:text size="sm">{{ __('dashboard::strings.Of Sales', ['amount' => $money($profit['parts_revenue'])]) }}</flux:text>
+            </div>
+            <div>
+                <flux:text size="sm">{{ __('dashboard::strings.Services Revenue') }}</flux:text>
+                <div class="text-2xl font-semibold tabular-nums" data-services-revenue="{{ $profit['services_revenue'] }}">{{ $money($profit['services_revenue']) }}</div>
+            </div>
+            <div>
+                <flux:text size="sm">{{ __('dashboard::strings.Unknown Cost') }}</flux:text>
+                <div class="text-2xl font-semibold tabular-nums" data-unknown-cost="{{ $profit['unknown_cost_revenue'] }}">{{ $money($profit['unknown_cost_revenue']) }}</div>
+                <flux:text size="sm">{{ __('dashboard::strings.Unknown Cost Hint') }}</flux:text>
+            </div>
+        </div>
+
+        @foreach ($profit['items'] as $row)
+            <div class="flex items-center justify-between gap-3 rounded-lg px-2 py-2" data-profit-item="{{ $row['name'] }}">
+                <div class="min-w-0">
+                    <div class="truncate font-medium">{{ $row['name'] }}</div>
+                    <flux:text size="sm">{{ __('dashboard::strings.Margin', ['percent' => Utils::pDigits((string) $row['margin'])]) }}</flux:text>
+                </div>
+                <span @class(['shrink-0 tabular-nums text-sm', 'text-red-600' => $row['profit'] < 0])>{{ $money($row['profit']) }}</span>
+            </div>
+        @endforeach
+    </flux:card>
+
     {{-- Purchases by supplier --}}
     <flux:card class="space-y-3">
         <flux:heading>{{ __('dashboard::strings.Purchases by Supplier') }}</flux:heading>
