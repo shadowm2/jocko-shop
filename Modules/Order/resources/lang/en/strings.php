@@ -123,4 +123,12 @@ return [
     'Receipt' => 'Receipt',
     'Thank You' => 'Thank you',
     'Mm' => 'mm',
+    'Vehicle History' => 'Vehicle history',
+    'Visits' => 'Visits',
+    'Km' => 'km',
+    'Overdue' => 'Overdue',
+    'Spent Here' => 'Spent on this car',
+    'Odometer Hint' => 'e.g. 85000',
+    'Next Service Hint' => 'The customer is texted a few days before this date.',
+    'Service Reminder Sms' => ':shop: :name, your :car is due for its next service on :date.',
 ];
