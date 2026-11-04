@@ -19,4 +19,6 @@ return [
     'Paid At' => 'تاریخ پرداخت',
     'Payment Status' => 'پرداخت',
     'Balance' => 'مانده',
+    'Odometer' => 'کیلومتر',
+    'Next Service' => 'سرویس بعدی',
 ];
