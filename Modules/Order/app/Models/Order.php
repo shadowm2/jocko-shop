@@ -150,7 +150,7 @@ class Order extends BaseModel
     protected function paymentStatusIs(Builder $query, PaymentStatus $status): void
     {
         $total = '(select coalesce(sum(total), 0) from order_items where order_items.order_id = orders.id and order_items.deleted_at is null)';
-        $paid = '(select coalesce(sum(amount), 0) from payments where payments.order_id = orders.id and payments.deleted_at is null)';
+        $paid = '(select coalesce(sum(amount), 0) from payments where payments.order_id = orders.id and payments.deleted_at is null and (payments.cheque_status is null or payments.cheque_status != \'bounced\'))';
 
         $query->whereRaw(match ($status) {
             PaymentStatus::UNPAID => "round({$paid}, 2) <= 0",

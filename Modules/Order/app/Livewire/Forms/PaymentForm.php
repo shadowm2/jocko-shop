@@ -7,6 +7,7 @@ use App\Rules\JalaliDate;
 use Closure;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
+use Modules\Order\Enums\ChequeStatus;
 use Modules\Order\Enums\PaymentMethod;
 use Modules\Order\Models\Order;
 use Modules\Order\Models\Payment;
@@ -29,6 +30,15 @@ class PaymentForm extends Form
 
     public ?string $description = null;
 
+    public ?string $cheque_number = null;
+
+    public ?string $cheque_bank = null;
+
+    /** The cheque's due day (Jalali, as typed) and the same day for the date picker. */
+    public ?string $cheque_due_at = null;
+
+    public string $cheque_due_at_gregorian = '';
+
     /** @return array<string, mixed> */
     protected function rules(): array
     {
@@ -38,7 +48,24 @@ class PaymentForm extends Form
             'method' => ['required', Rule::enum(PaymentMethod::class)],
             'paid_at' => ['required', 'string', new JalaliDate],
             'description' => 'nullable|string',
+            'cheque_number' => ['nullable', 'string', 'max:40', Rule::requiredIf($this->needsChequeDetails(...))],
+            'cheque_bank' => ['nullable', 'string', 'max:60'],
+            'cheque_due_at' => [Rule::requiredIf($this->needsChequeDetails(...)), 'nullable', new JalaliDate],
         ];
+    }
+
+    public function isCheque(): bool
+    {
+        return $this->method === PaymentMethod::CHEQUE->value;
+    }
+
+    /**
+     * A cheque is tracked by its number and due date. One recorded before cheques were
+     * tracked has neither, and may still be edited without them.
+     */
+    private function needsChequeDetails(): bool
+    {
+        return $this->isCheque() && ! ($this->payment !== null && $this->payment->cheque_status === null);
     }
 
     /**
@@ -82,6 +109,10 @@ class PaymentForm extends Form
         $this->paid_at = Utils::pDigits($payment->paid_at_jalali->format('Y/m/d')) ?? '';
         $this->paid_at_gregorian = $payment->paid_at->format('Y/m/d');
         $this->description = $payment->description;
+        $this->cheque_number = $payment->cheque_number;
+        $this->cheque_bank = $payment->cheque_bank;
+        $this->cheque_due_at = $payment->cheque_due_at === null ? null : Utils::pDigits(Jalalian::fromDateTime($payment->cheque_due_at)->format('Y/m/d'));
+        $this->cheque_due_at_gregorian = $payment->cheque_due_at?->format('Y/m/d') ?? '';
     }
 
     public function save(): Payment
@@ -90,6 +121,14 @@ class PaymentForm extends Form
 
         $data = $this->validate();
         $data['paid_at'] = Jalalian::fromFormat('Y/m/d', Utils::eDigits($data['paid_at']))->toCarbon();
+
+        if ($this->isCheque() && filled($data['cheque_due_at'] ?? null)) {
+            $data['cheque_due_at'] = Jalalian::fromFormat('Y/m/d', Utils::eDigits(str_replace('-', '/', $data['cheque_due_at'])))->toCarbon()->toDateString();
+            // A new cheque waits to be cashed; an edited one keeps the state the shop gave it.
+            $data['cheque_status'] = $this->currentChequeStatus()->value;
+        } else {
+            $data = [...$data, 'cheque_number' => null, 'cheque_bank' => null, 'cheque_due_at' => null, 'cheque_status' => null];
+        }
 
         $service = resolve(PaymentService::class);
 
@@ -102,6 +141,13 @@ class PaymentForm extends Form
         }
 
         return $service->create($data);
+    }
+
+    private function currentChequeStatus(): ChequeStatus
+    {
+        $current = $this->payment instanceof Payment ? $this->payment->cheque_status : null;
+
+        return $current ?? ChequeStatus::PENDING;
     }
 
     /**
@@ -124,6 +170,9 @@ class PaymentForm extends Form
             'amount' => __('order::attributes.Amount'),
             'method' => __('order::attributes.Payment Method'),
             'paid_at' => __('order::attributes.Paid At'),
+            'cheque_number' => __('order::attributes.Cheque Number'),
+            'cheque_bank' => __('order::attributes.Cheque Bank'),
+            'cheque_due_at' => __('order::attributes.Cheque Due At'),
         ];
     }
 }

@@ -9,6 +9,10 @@ return [
     'Paid At' => 'Paid at',
     'Payment Status' => 'Payment',
     'Balance' => 'Balance',
+    'Cheque Number' => 'Cheque number',
+    'Cheque Bank' => 'Bank',
+    'Cheque Due At' => 'Due date',
+    'Cheque Status' => 'Status',
     'Odometer' => 'Odometer (km)',
     'Next Service' => 'Next service',
 ];

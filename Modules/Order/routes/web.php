@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Modules\Order\Http\Controllers\GatewayReturnController;
+use Modules\Order\Livewire\Cheques;
 use Modules\Order\Livewire\CustomerStatement;
 use Modules\Order\Livewire\DailyClose;
 use Modules\Order\Livewire\Debts;
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('payments')->as('payments.')->group(function () {
         Route::livewire('/debts', Debts::class)->name('debts');
+        Route::livewire('/cheques', Cheques::class)->name('cheques');
         Route::livewire('/close', DailyClose::class)->name('close');
         Route::livewire('/list', PaymentsList::class)->name('index');
         Route::livewire('/new', PaymentCreate::class)->name('create');
