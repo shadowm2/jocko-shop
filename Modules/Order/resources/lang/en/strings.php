@@ -120,4 +120,9 @@ return [
     'Reminder Sent' => 'The reminder was sent.',
     'Reminders Done' => ':sent sent, :skipped skipped, :failed failed.',
     'Reminder Sms' => ':shop: :name, you still owe :amount for :count order(s). Please settle it when you can.',
+    'Scan Barcode' => 'Scan a barcode',
+    'Scan Barcode Hint' => 'Scan or type a barcode, SKU or part number and press Enter',
+    'Barcode Added' => ':item added.',
+    'Barcode Unknown' => 'Nothing has the code :code.',
+    'Barcode Not Stocked' => 'The code :code is known, but this warehouse does not stock it.',
 ];

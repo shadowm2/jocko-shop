@@ -131,4 +131,9 @@ return [
     'Reminder Sent' => 'یادآوری ارسال شد.',
     'Reminders Done' => ':sent ارسال شد، :skipped ردشد، :failed ناموفق.',
     'Reminder Sms' => ':shop: :name، شما هنوز :amount برای :count سفارش بدهکارید. لطفاً در اولین فرصت تسویه کنید.',
+    'Scan Barcode' => 'اسکن بارکد',
+    'Scan Barcode Hint' => 'بارکد، SKU یا شماره قطعه را اسکن یا تایپ کنید و Enter بزنید',
+    'Barcode Added' => ':item اضافه شد.',
+    'Barcode Unknown' => 'کالایی با کد :code پیدا نشد.',
+    'Barcode Not Stocked' => 'کد :code شناخته شد اما این انبار آن را ندارد.',
 ];
