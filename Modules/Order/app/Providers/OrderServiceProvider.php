@@ -5,6 +5,7 @@ namespace Modules\Order\Providers;
 use App\Providers\BaseModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Modules\Order\Console\ReconcilePaymentsCommand;
+use Modules\Order\Console\RemindServicesCommand;
 
 class OrderServiceProvider extends BaseModuleServiceProvider
 {
@@ -25,6 +26,7 @@ class OrderServiceProvider extends BaseModuleServiceProvider
      */
     protected array $commands = [
         ReconcilePaymentsCommand::class,
+        RemindServicesCommand::class,
     ];
 
     /**
@@ -43,5 +45,6 @@ class OrderServiceProvider extends BaseModuleServiceProvider
     protected function configureSchedules(Schedule $schedule): void
     {
         $schedule->command(ReconcilePaymentsCommand::class)->everyMinute()->withoutOverlapping(5);
+        $schedule->command(RemindServicesCommand::class)->dailyAt('09:30')->withoutOverlapping(60);
     }
 }

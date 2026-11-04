@@ -3,6 +3,7 @@
 namespace Modules\Order\Models;
 
 use App\Models\BaseModel;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,11 +27,14 @@ use Modules\User\Models\User;
  * @property string $order_number
  * @property OrderStatus $status
  * @property ?string $description
+ * @property ?int $odometer
+ * @property ?CarbonImmutable $next_service_at
+ * @property ?CarbonImmutable $service_reminded_at
  * @property-read ?float $items_sum_total
  * @property-read ?float $payments_sum_amount
  * @property-read Warehouse $warehouse
  */
-#[Fillable(['slug', 'user_id', 'user_car_id', 'warehouse_id', 'order_number', 'status', 'description'])]
+#[Fillable(['slug', 'user_id', 'user_car_id', 'warehouse_id', 'order_number', 'status', 'description', 'odometer', 'next_service_at', 'service_reminded_at'])]
 class Order extends BaseModel
 {
     /**
@@ -40,7 +44,21 @@ class Order extends BaseModel
 
     protected $casts = [
         'status' => OrderStatus::class,
+        'next_service_at' => 'immutable_date',
+        'service_reminded_at' => 'immutable_datetime',
     ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        // A new service date is a new promise: remind about it again.
+        static::saving(function (Order $order): void {
+            if ($order->isDirty('next_service_at') && ! $order->isDirty('service_reminded_at')) {
+                $order->service_reminded_at = null;
+            }
+        });
+    }
 
     protected static function newFactory(): OrderFactory
     {

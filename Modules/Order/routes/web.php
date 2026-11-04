@@ -14,6 +14,7 @@ use Modules\Order\Livewire\OrdersList;
 use Modules\Order\Livewire\PaymentCreate;
 use Modules\Order\Livewire\PaymentEdit;
 use Modules\Order\Livewire\PaymentsList;
+use Modules\Order\Livewire\VehicleHistory;
 
 // The customer's browser comes back here from the gateway, signed in to nothing. Some
 // gateways POST, so no CSRF token; what it carries is never trusted anyway.
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('/{order}/pay', OrderPay::class)->name('pay');
     });
 
+    Route::livewire('/users/{user}/cars/{userCar}/history', VehicleHistory::class)->name('users.cars.history');
     Route::livewire('/users/{user}/statement', CustomerStatement::class)->name('users.statement');
 
     Route::prefix('payments')->as('payments.')->group(function () {

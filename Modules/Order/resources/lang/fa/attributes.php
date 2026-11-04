@@ -23,4 +23,6 @@ return [
     'Cheque Bank' => 'بانک',
     'Cheque Due At' => 'تاریخ سررسید',
     'Cheque Status' => 'وضعیت',
+    'Odometer' => 'کیلومتر',
+    'Next Service' => 'سرویس بعدی',
 ];
