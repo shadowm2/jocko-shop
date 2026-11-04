@@ -22,6 +22,9 @@ return [
     // A customer who owes is texted a reminder at most once in this many days (a manual one can override it).
     'reminder_min_days' => (int) env('PAYMENTS_REMINDER_MIN_DAYS', 7),
 
+    // Paper width of the payment receipt, in millimetres: 58 or 80 (a thermal printer's roll).
+    'receipt_width' => in_array((int) env('PAYMENTS_RECEIPT_WIDTH', 80), [58, 80], true) ? (int) env('PAYMENTS_RECEIPT_WIDTH', 80) : 80,
+
     'timeout' => 15,
 
     // Gateway credentials: set them in Settings (stored encrypted), or here. Never commit them.
