@@ -9,4 +9,6 @@ return [
     'Paid At' => 'Paid at',
     'Payment Status' => 'Payment',
     'Balance' => 'Balance',
+    'Odometer' => 'Odometer (km)',
+    'Next Service' => 'Next service',
 ];

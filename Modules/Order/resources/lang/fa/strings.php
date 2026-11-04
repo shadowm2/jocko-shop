@@ -136,4 +136,12 @@ return [
     'Barcode Added' => ':item اضافه شد.',
     'Barcode Unknown' => 'کالایی با کد :code پیدا نشد.',
     'Barcode Not Stocked' => 'کد :code شناخته شد اما این انبار آن را ندارد.',
+    'Vehicle History' => 'سابقه خودرو',
+    'Visits' => 'مراجعه',
+    'Km' => 'کیلومتر',
+    'Overdue' => 'گذشته از موعد',
+    'Spent Here' => 'هزینه برای این خودرو',
+    'Odometer Hint' => 'مثلاً ۸۵۰۰۰',
+    'Next Service Hint' => 'چند روز قبل از این تاریخ برای مشتری پیامک می‌رود.',
+    'Service Reminder Sms' => ':shop: :name، موعد سرویس بعدی :car شما :date است.',
 ];
