@@ -1,4 +1,17 @@
 @props(['form', 'itemCatalog' => []])
+<flux:field>
+    <flux:label>{{ __('order::strings.Scan Barcode') }}</flux:label>
+    <flux:input
+        wire:model="barcode"
+        wire:keydown.enter.prevent="scanBarcode"
+        icon="qr-code"
+        dir="ltr"
+        autocomplete="off"
+        :placeholder="__('order::strings.Scan Barcode Hint')"
+        data-scan-barcode
+    />
+</flux:field>
+
 <livewire:inventory-warehouse-item-picker
     :warehouse="$form->warehouse"
     :show-warehouse-picker="$form->showsWarehousePicker()"
