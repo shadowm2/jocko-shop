@@ -282,4 +282,13 @@ return [
     'Last Backup Failed' => 'The last backup failed: :message',
     'Backups Safety' => 'A backup can only be read with this shop\'s APP_KEY (or the BACKUP_PASSPHRASE if one is set), so keep that safe. Copy the files off this computer too.',
     'Backups Copy' => 'A second copy goes to :path.',
+    'Profit' => 'Profit',
+    'Profit Hint' => 'Estimated from the average price paid for each part when it was bought. Services have no cost recorded.',
+    'Parts Profit' => 'Profit on parts',
+    'Parts Cost' => 'Cost of parts sold',
+    'Services Revenue' => 'Services (labour)',
+    'Unknown Cost' => 'Parts with no known cost',
+    'Unknown Cost Hint' => 'Never bought through a purchase, so left out of the profit.',
+    'Margin' => 'Margin :percent%',
+    'Of Sales' => 'of :amount in sales',
 ];
