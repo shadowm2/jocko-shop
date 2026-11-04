@@ -179,6 +179,27 @@ class OrderForm extends Form
         return round($this->number($line['quantity'] ?? 0) * $this->number($line['unit_price'] ?? 0), 2);
     }
 
+    /**
+     * Put a scanned warehouse item on the order: a new line, or one more of a line
+     * that is already there. A new line starts at the brand's sale price when it has one.
+     */
+    public function addScanned(string $slug, ?float $salePrice): void
+    {
+        if (in_array($slug, $this->selected, true)) {
+            $line = $this->items[$slug] ?? [];
+            $this->items[$slug]['quantity'] = $this->number($line['quantity'] ?? 0) + 1;
+
+            return;
+        }
+
+        $this->selected = [...$this->selected, $slug];
+        $this->syncSelectedItems();
+
+        if ($salePrice !== null && $salePrice > 0) {
+            $this->items[$slug]['unit_price'] = $salePrice;
+        }
+    }
+
     public function removeOrderItem(string $slug): void
     {
         $this->selected = array_values(array_diff($this->selected, [$slug]));
