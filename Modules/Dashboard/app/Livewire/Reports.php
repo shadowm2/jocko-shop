@@ -6,6 +6,7 @@ use App\Helpers\Utils;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
+use Modules\Dashboard\Services\ProfitService;
 use Modules\Inventory\Enums\PurchaseStatus;
 use Modules\Inventory\Models\PurchaseItem;
 use Modules\Inventory\Models\Supplier;
@@ -29,7 +30,7 @@ class Reports extends Component
         $this->reset('filters');
     }
 
-    public function render(): View
+    public function render(ProfitService $profits): View
     {
         $from = Utils::jalaliToDate($this->filters['from']);
         $to = Utils::jalaliToDate($this->filters['to']);
@@ -105,6 +106,7 @@ class Reports extends Component
             'bySupplier' => $bySupplier->each(function (\stdClass $row) use ($suppliers): void {
                 $row->supplier = $suppliers->get($row->supplier_id);
             }),
+            'profit' => $profits->between($from, $to, self::LIST_SIZE),
             'outstandingTotal' => (float) $owed?->total,
             'outstandingCount' => (int) $owed?->orders,
             'outstanding' => $outstanding,

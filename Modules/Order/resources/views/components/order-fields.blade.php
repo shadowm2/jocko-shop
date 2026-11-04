@@ -65,6 +65,31 @@
 
 <x-order::order-services-editor :form="$this->form" />
 
+<div class="grid gap-4 sm:grid-cols-2">
+    <flux:field>
+        <flux:label>{{ __('order::attributes.Odometer') }}</flux:label>
+        <flux:input wire:model="form.odometer" inputmode="numeric" :placeholder="__('order::strings.Odometer Hint')" />
+        <flux:error name="form.odometer" />
+    </flux:field>
+
+    <flux:field>
+        <flux:label>{{ __('order::attributes.Next Service') }}</flux:label>
+        <input
+            class="persian-datepicker
+                        appearance-none [:where(&)]:w-full ps-3 pe-10 block h-10 py-2 text-base sm:text-sm leading-[1.375rem]
+                        rounded-lg shadow-xs border bg-white dark:bg-white/10 dark:disabled:bg-white/[7%]
+                        text-zinc-700 dark:text-zinc-300 disabled:text-zinc-500 dark:disabled:text-zinc-400
+                        dark:[&>option]:bg-zinc-700 dark:[&>option]:text-white disabled:shadow-none border
+                        border-zinc-200 border-b-zinc-300/80 dark:border-white/10"
+            wire:model="form.next_service_at"
+            value="{{ $this->form->next_service_at_gregorian }}"
+            autocomplete="off"
+        />
+        <flux:description>{{ __('order::strings.Next Service Hint') }}</flux:description>
+        <flux:error name="form.next_service_at" />
+    </flux:field>
+</div>
+
 <flux:field>
     <flux:label>
         {{ __('order::attributes.Description') }}
