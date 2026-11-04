@@ -88,6 +88,22 @@ Once linked, every create, update, delete and restore of the models listed in `c
 - **Allowlist:** `sync.entities` lists, per model, the only fields that leave the machine. Passwords, OTP codes, remember tokens, settings/API keys and roles are never sent, and neither are the original uploaded files (see below). Do not add a credential to that list.
 - Confirmed events are kept 7 days (`sync.retention_days`) and then pruned; events refused for good by Jocko Control stay in the table with the reason in `rejected_code` / `last_error`. `control:status` shows how many events are waiting.
 
+## Backups
+
+The whole database is backed up every night (`BACKUP_AT`, default 02:15) into one **encrypted, compressed file** under `storage/app/private/backups/`, and the newest `BACKUP_KEEP` (14) are kept. Set `BACKUP_COPY_PATH` to also copy each one to a USB drive or network folder, and keep a copy somewhere other than the shop's computer: a backup on the same disk does not survive the disk.
+
+```bash
+php artisan backup:run          # take one now (or Settings → Backups)
+php artisan backup:list
+php artisan backup:verify       # prove the newest can be read, and say what is in it (changes nothing)
+php artisan backup:restore <file>   # replace the database with a backup (asks first)
+```
+
+- It is done in PHP, table by table, so it needs no `mysqldump` and works the same on MySQL and SQLite. Sessions, caches, queues and Pulse data are left out.
+- **Encryption.** Files are AES-256-GCM, cut into chunks that are each authenticated and bound to their position, so a changed, reordered, truncated or foreign file is refused instead of half-restored. The key comes from `APP_KEY`, so **keep `APP_KEY` safe: a backup cannot be read without it.** Set `BACKUP_PASSPHRASE` to use a passphrase instead, which also lets you restore on a machine with a different `APP_KEY` (use `--ask-passphrase`). Encrypted settings (gateway credentials, the Jocko Control token) are encrypted with `APP_KEY` inside the database too, so a restore on another `APP_KEY` leaves them unset and they must be entered again.
+- **Restoring** reads and checks the whole backup first, takes a safety backup of the present state (`...-pre-restore.jocko-backup`), then replaces the rows of every table in the backup in one transaction, so a failure leaves the shop as it was. The shop is put in maintenance mode meanwhile (`--live` to skip). It refuses a backup from a newer version of the shop: update first. Run `php artisan migrate` after restoring an older backup.
+- A failed backup is shown on the Backups page. **Test a restore on a spare copy at least once;** `backup:verify` checks readability, not that your process works.
+
 ## Taking payments
 
 Open an order's **Collect payment** (the banknotes button in the orders list) to take what it still owes, online or on a card terminal. Every payment is an *attempt* that only becomes a payment record once it is confirmed, and only once.

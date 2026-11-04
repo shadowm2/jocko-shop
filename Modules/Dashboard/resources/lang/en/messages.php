@@ -15,4 +15,5 @@ return [
     'Jocko Control Not Linked' => 'This shop is not linked to Jocko Control.',
     'Queued Changes Sent' => ':count change(s) sent.',
     'Refused Changes Queued Again' => 'The refused changes are queued again.',
+    'Backup Created' => 'Backup created.',
 ];

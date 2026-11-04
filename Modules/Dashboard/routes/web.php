@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Dashboard\Http\Controllers\BackupDownloadController;
+use Modules\Dashboard\Livewire\Backups;
 use Modules\Dashboard\Livewire\CategoryCreate;
 use Modules\Dashboard\Livewire\CategoryEdit;
 use Modules\Dashboard\Livewire\CategoryList;
@@ -26,6 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/system-settings', SystemSettings::class)->name('system-settings.edit');
     Route::livewire('/settings/jocko-control', JockoControlSettings::class)->name('jocko-control-settings.edit');
     Route::livewire('/settings/jocko-control/queue', JockoControlQueue::class)->name('jocko-control-queue.index');
+    Route::livewire('/settings/backups', Backups::class)->name('backups.index');
+    Route::get('/settings/backups/{name}/download', BackupDownloadController::class)->name('backups.download');
     Route::livewire('/settings/warehouses', WarehouseSettings::class)->name('warehouse-settings.edit');
 
     Route::prefix('countries')->as('countries.')->group(function () {
