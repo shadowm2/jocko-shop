@@ -3,6 +3,7 @@
 namespace Modules\Order\Livewire\Forms;
 
 use App\Helpers\Utils;
+use App\Rules\JalaliDate;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +19,7 @@ use Modules\Order\Models\OrderItem;
 use Modules\Order\Services\OrderService;
 use Modules\User\Enums\UserType;
 use Modules\User\Models\User;
+use Morilog\Jalali\Jalalian;
 
 class OrderForm extends Form
 {
@@ -34,6 +36,14 @@ class OrderForm extends Form
     public string $status = OrderStatus::PENDING->value;
 
     public ?string $description = null;
+
+    /** The odometer reading at this visit, as typed. */
+    public ?string $odometer = null;
+
+    /** When the car should come back (Jalali, as typed), and the same day for the date picker. */
+    public ?string $next_service_at = null;
+
+    public string $next_service_at_gregorian = '';
 
     /**
      * Service lines (labour and the like), keyed by the service's slug, each with
@@ -69,6 +79,8 @@ class OrderForm extends Form
             'warehouse' => 'required|string|exists:warehouses,slug',
             'status' => ['required', Rule::enum(OrderStatus::class)],
             'description' => 'nullable|string',
+            'odometer' => 'nullable|integer|min:0|max:9999999',
+            'next_service_at' => ['nullable', new JalaliDate],
             'selected' => ['nullable', 'array'],
             'selected.*' => ['string', 'distinct', Rule::exists('warehouse_items', 'slug')],
             'services' => ['nullable', 'array'],
@@ -197,6 +209,9 @@ class OrderForm extends Form
         $this->warehouse = $order->warehouse->slug;
         $this->status = $order->status->value;
         $this->description = $order->description;
+        $this->odometer = $order->odometer === null ? null : (string) $order->odometer;
+        $this->next_service_at = $order->next_service_at === null ? null : Utils::pDigits(Jalalian::fromDateTime($order->next_service_at)->format('Y/m/d'));
+        $this->next_service_at_gregorian = $order->next_service_at?->format('Y/m/d') ?? '';
 
         $this->services = $order->items()->whereHas('item', fn ($item) => $item->where('is_service', true))->with('item')->get()
             ->mapWithKeys(fn (OrderItem $line): array => [$line->item->slug => [
@@ -282,8 +297,14 @@ class OrderForm extends Form
         }
         unset($service);
 
+        $this->odometer = blank($this->odometer) ? null : str_replace([',', '٬'], '', Utils::eDigits($this->odometer));
+        $this->next_service_at = blank($this->next_service_at) ? null : $this->next_service_at;
+
         $data = $this->validate();
         unset($data['selected'], $data['serviceToAdd']);
+        $data['next_service_at'] = filled($data['next_service_at'] ?? null)
+            ? Jalalian::fromFormat('Y/m/d', Utils::eDigits(str_replace('-', '/', $data['next_service_at'])))->toCarbon()->toDateString()
+            : null;
         $data['services'] ??= [];
 
         $orderService = resolve(OrderService::class);
@@ -310,6 +331,8 @@ class OrderForm extends Form
             'user_car_id' => __('order::attributes.User Car'),
             'warehouse' => __('order::attributes.Warehouse'),
             'status' => __('order::attributes.Order Status'),
+            'odometer' => __('order::attributes.Odometer'),
+            'next_service_at' => __('order::attributes.Next Service'),
             'selected' => __('order::attributes.Warehouse Item'),
             'items.*.quantity' => __('order::attributes.Quantity'),
             'items.*.unit_price' => __('order::attributes.Unit Price'),
