@@ -47,16 +47,19 @@ class CashCloseService
     {
         $totals = $this->totalsFor($day);
 
-        return CashClose::query()->updateOrCreate(
-            ['business_date' => $day->toDateString()],
-            [
-                'totals' => array_map(fn (array $method): float => $method['total'], $totals['methods']),
-                'expected_cash' => $totals['cash'],
-                'counted_cash' => round($counted, 2),
-                'difference' => round($counted - $totals['cash'], 2),
-                'note' => filled($note) ? $note : null,
-                'closed_by' => $closedBy,
-            ],
-        );
+        // Looked up by date, not by the exact stored value: SQLite keeps a date cast as a timestamp.
+        $close = CashClose::query()->whereDate('business_date', $day->toDateString())->first() ?? new CashClose;
+
+        $close->fill([
+            'business_date' => $day->toDateString(),
+            'totals' => array_map(fn (array $method): float => $method['total'], $totals['methods']),
+            'expected_cash' => $totals['cash'],
+            'counted_cash' => round($counted, 2),
+            'difference' => round($counted - $totals['cash'], 2),
+            'note' => filled($note) ? $note : null,
+            'closed_by' => $closedBy,
+        ])->save();
+
+        return $close;
     }
 }
