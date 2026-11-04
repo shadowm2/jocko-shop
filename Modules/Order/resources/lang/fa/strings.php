@@ -131,4 +131,7 @@ return [
     'Reminder Sent' => 'یادآوری ارسال شد.',
     'Reminders Done' => ':sent ارسال شد، :skipped ردشد، :failed ناموفق.',
     'Reminder Sms' => ':shop: :name، شما هنوز :amount برای :count سفارش بدهکارید. لطفاً در اولین فرصت تسویه کنید.',
+    'Receipt' => 'رسید پرداخت',
+    'Thank You' => 'با سپاس از خرید شما',
+    'Mm' => 'میلی‌متر',
 ];

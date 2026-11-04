@@ -12,6 +12,7 @@ use Modules\Order\Livewire\OrderPay;
 use Modules\Order\Livewire\OrdersList;
 use Modules\Order\Livewire\PaymentCreate;
 use Modules\Order\Livewire\PaymentEdit;
+use Modules\Order\Livewire\PaymentReceipt;
 use Modules\Order\Livewire\PaymentsList;
 
 // The customer's browser comes back here from the gateway, signed in to nothing. Some
@@ -38,5 +39,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('/list', PaymentsList::class)->name('index');
         Route::livewire('/new', PaymentCreate::class)->name('create');
         Route::livewire('/{payment}/edit', PaymentEdit::class)->name('edit');
+        Route::livewire('/{payment}/receipt', PaymentReceipt::class)->name('receipt');
     });
 });

@@ -120,4 +120,7 @@ return [
     'Reminder Sent' => 'The reminder was sent.',
     'Reminders Done' => ':sent sent, :skipped skipped, :failed failed.',
     'Reminder Sms' => ':shop: :name, you still owe :amount for :count order(s). Please settle it when you can.',
+    'Receipt' => 'Receipt',
+    'Thank You' => 'Thank you',
+    'Mm' => 'mm',
 ];
