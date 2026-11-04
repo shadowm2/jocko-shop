@@ -19,6 +19,9 @@ return [
     // How long an unpaid online payment stays open before it is given up.
     'attempt_ttl_minutes' => (int) env('PAYMENTS_ATTEMPT_TTL_MINUTES', 30),
 
+    // A customer who owes is texted a reminder at most once in this many days (a manual one can override it).
+    'reminder_min_days' => (int) env('PAYMENTS_REMINDER_MIN_DAYS', 7),
+
     'timeout' => 15,
 
     // Gateway credentials: set them in Settings (stored encrypted), or here. Never commit them.
