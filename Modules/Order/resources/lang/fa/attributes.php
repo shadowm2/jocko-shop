@@ -19,4 +19,8 @@ return [
     'Paid At' => 'تاریخ پرداخت',
     'Payment Status' => 'پرداخت',
     'Balance' => 'مانده',
+    'Cheque Number' => 'شماره چک',
+    'Cheque Bank' => 'بانک',
+    'Cheque Due At' => 'تاریخ سررسید',
+    'Cheque Status' => 'وضعیت',
 ];

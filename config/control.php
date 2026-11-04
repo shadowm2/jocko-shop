@@ -64,7 +64,7 @@ return [
         'entities' => [
             Order::class => ['type' => 'order', 'fields' => ['slug', 'user_id', 'user_car_id', 'warehouse_id', 'order_number', 'status', 'description']],
             OrderItem::class => ['type' => 'order_item', 'fields' => ['slug', 'order_id', 'item_id', 'unit_id', 'quantity', 'unit_price', 'total']],
-            Payment::class => ['type' => 'payment', 'fields' => ['slug', 'order_id', 'amount', 'method', 'paid_at', 'description']],
+            Payment::class => ['type' => 'payment', 'fields' => ['slug', 'order_id', 'amount', 'method', 'paid_at', 'description', 'cheque_number', 'cheque_bank', 'cheque_due_at', 'cheque_status']],
             User::class => ['type' => 'user', 'fields' => ['slug', 'type', 'first_name', 'last_name', 'email', 'mobile']],
             UserCar::class => ['type' => 'user_car', 'fields' => ['slug', 'user_id', 'car_id', 'color_id', 'manufactured_at', 'description']],
             CarCompany::class => ['type' => 'car_company', 'fields' => ['slug', 'name']],

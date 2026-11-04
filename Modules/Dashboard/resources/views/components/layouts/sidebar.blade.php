@@ -512,6 +512,13 @@
                             {{ __('order::strings.Debts') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item
+                            :href="route('payments.cheques')"
+                            :current="request()->routeIs('payments.cheques')"
+                            wire:navigate
+                        >
+                            {{ __('order::strings.Cheques') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item
                             icon:trailing="plus"
                             :href="route('payments.create')"
                             :current="request()->routeIs('payments.create')"
