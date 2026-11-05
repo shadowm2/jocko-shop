@@ -13,6 +13,7 @@
             :alt="$row->name"
             :initial="mb_substr($row->name, 0, 1)"
             :name="$row->name"
+            :label="__('car::attributes.Car Name')"
         />
     </x-table.cell>
     <x-table.cell>

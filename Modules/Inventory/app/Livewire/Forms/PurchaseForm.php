@@ -199,7 +199,6 @@ class PurchaseForm extends Form
         $this->syncLineValues();
 
         $data = $this->validate();
-        // TODO: $data is kinda valid here. only p2e dates before going on
         $purchaseService = resolve(PurchaseService::class);
         $data['ordered_at'] = Jalalian::fromFormat('Y/m/d', Utils::eDigits($data['ordered_at']))->toCarbon();
         $data['expected_at'] = Jalalian::fromFormat('Y/m/d', Utils::eDigits($data['expected_at']))->toCarbon();
