@@ -2,6 +2,7 @@
 
 namespace Modules\Order\Livewire;
 
+use App\Helpers\Utils;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -51,12 +52,14 @@ class Debts extends Component
                 ['label' => __('order::strings.Customer')],
                 ['label' => __('order::strings.Open Orders')],
                 ['label' => __('order::strings.Balance Owed')],
+                ['label' => __('order::strings.Owed Over Days', ['days' => Utils::pDigits((string) CustomerBalanceService::AGING_DAYS[1])])],
                 ['label' => __('order::strings.Oldest Unpaid')],
                 ['label' => __('order::strings.Last Reminder')],
                 [],
             ],
             'rows' => $debtors,
             'totalOwed' => round((float) $debtors->sum('balance'), 2),
+            'aging' => $balances->agingTotals($debtors),
         ])->layout('dashboard::layouts.app')->layoutData(['title' => __('order::strings.Debts')]);
     }
 }

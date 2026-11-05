@@ -15,6 +15,14 @@
         <span class="font-semibold tabular-nums text-red-600 dark:text-red-400" data-balance="{{ $row['balance'] }}">{{ Utils::pDigits(Utils::formatQuantity($row['balance'], 0, ',')) }}</span>
     </x-table.cell>
     <x-table.cell>
+        @php $old = $row['aging'][2] + $row['aging'][3]; @endphp
+        @if ($old > 0)
+            <span class="tabular-nums text-red-600 dark:text-red-400" data-owed-old="{{ $old }}">{{ Utils::pDigits(Utils::formatQuantity($old, 0, ',')) }}</span>
+        @else
+            <span class="text-zinc-400">—</span>
+        @endif
+    </x-table.cell>
+    <x-table.cell>
         @if ($row['oldest_at'])
             <span @class(['text-red-600' => $days > 30, 'text-amber-600' => $days > 14 && $days <= 30])>
                 {{ Utils::pDigits(Jalalian::fromDateTime($row['oldest_at'])->format('Y/m/d')) }}
