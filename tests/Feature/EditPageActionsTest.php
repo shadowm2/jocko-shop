@@ -4,6 +4,7 @@ use Modules\Car\Models\Car;
 use Modules\Car\Models\CarCompany;
 use Modules\Car\Models\Color;
 use Modules\Car\Models\UserCar;
+use Modules\Dashboard\Enums\CategoryType;
 use Modules\Dashboard\Models\Category;
 use Modules\Inventory\Models\Item;
 use Modules\Inventory\Models\UnitGroup;
@@ -72,4 +73,10 @@ it('offers the brands on the item edit page', function () {
     $this->get(route('items.edit', $item))
         ->assertOk()
         ->assertSee(route('items.brands.index', $item), false);
+});
+
+it('makes categories of a type that exists, every time', function () {
+    $types = collect(range(1, 20))->map(fn () => Category::factory()->create()->type);
+
+    expect($types->every(fn ($type) => $type instanceof CategoryType))->toBeTrue();
 });
