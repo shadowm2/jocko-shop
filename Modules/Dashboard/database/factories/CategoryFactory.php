@@ -4,6 +4,7 @@ namespace Modules\Dashboard\Database\Factories;
 
 use App\Helpers\Utils;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Dashboard\Enums\CategoryType;
 use Modules\Dashboard\Models\Category;
 
 /** @extends Factory<Category> */
@@ -26,7 +27,7 @@ class CategoryFactory extends Factory
             'name' => $name,
             'slug' => Utils::generateUniqueSlug($name, Category::class),
             'parent_id' => null,
-            'type' => $this->faker->randomElement(['item', 'brand']),
+            'type' => $this->faker->randomElement(CategoryType::cases()),
             'icon' => null,
             'description' => $this->faker->optional()->sentence(),
             'sort_order' => 0,
