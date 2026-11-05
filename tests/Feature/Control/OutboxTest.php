@@ -11,6 +11,7 @@ use Modules\Inventory\Models\Item;
 use Modules\Inventory\Models\UnitGroup;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Models\WarehouseItem;
+use Modules\Order\Models\CashClose;
 use Modules\User\Models\User;
 
 beforeEach(function () {
@@ -159,5 +160,22 @@ test('every configured model exists and is observed', function () {
             ->and($class::getEventDispatcher())->not->toBeNull();
     }
 
-    expect(resolve(SyncEntities::class)->models())->toHaveCount(24);
+    expect(resolve(SyncEntities::class)->models())->toHaveCount(25);
+});
+
+test('a closed day is sent without its nested totals', function () {
+    CashClose::create([
+        'business_date' => '2026-11-04',
+        'totals' => ['cash' => 150.0, 'card' => 50.0],
+        'expected_cash' => 150,
+        'counted_cash' => 140,
+        'difference' => -10,
+        'note' => 'short',
+    ]);
+
+    $event = OutboxEvent::sole();
+
+    expect($event->event_type)->toBe('cash_close.created')
+        ->and($event->payload)->toMatchArray(['expected_cash' => 150, 'counted_cash' => 140, 'difference' => -10, 'note' => 'short'])
+        ->and($event->payload)->not->toHaveKey('totals');
 });

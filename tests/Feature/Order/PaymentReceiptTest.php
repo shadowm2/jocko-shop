@@ -49,7 +49,7 @@ it('shows a cheque\'s number and due date', function () {
     $this->first->forceFill(['method' => PaymentMethod::CHEQUE, 'cheque_number' => '998877', 'cheque_due_at' => today()->addMonth()])->save();
 
     Livewire::test(PaymentReceipt::class, ['payment' => $this->first])->assertSee(__('order::attributes.Cheque Number'))->assertSee('۹۹۸۸۷۷');
-})->skip(fn () => ! Illuminate\Support\Facades\Schema::hasColumn('payments', 'cheque_number'), 'needs the cheque columns');
+});
 
 it('is linked from the payments list and needs a sign-in', function () {
     $this->get(route('payments.index'))->assertOk()->assertSee(route('payments.receipt', $this->first), false);
