@@ -20,6 +20,7 @@ use Modules\Inventory\Models\Unit;
 use Modules\Inventory\Models\UnitGroup;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Models\WarehouseItem;
+use Modules\Order\Models\CashClose;
 use Modules\Order\Models\Order;
 use Modules\Order\Models\OrderItem;
 use Modules\Order\Models\Payment;
@@ -65,6 +66,8 @@ return [
             Order::class => ['type' => 'order', 'fields' => ['slug', 'user_id', 'user_car_id', 'warehouse_id', 'order_number', 'status', 'description', 'odometer', 'next_service_at']],
             OrderItem::class => ['type' => 'order_item', 'fields' => ['slug', 'order_id', 'item_id', 'unit_id', 'quantity', 'unit_price', 'total']],
             Payment::class => ['type' => 'payment', 'fields' => ['slug', 'order_id', 'amount', 'method', 'paid_at', 'description', 'cheque_number', 'cheque_bank', 'cheque_due_at', 'cheque_status']],
+            // The nested per-method `totals` is left out: it only repeats the day's payments, which are sent anyway.
+            CashClose::class => ['type' => 'cash_close', 'fields' => ['business_date', 'expected_cash', 'counted_cash', 'difference', 'note', 'closed_by']],
             User::class => ['type' => 'user', 'fields' => ['slug', 'type', 'first_name', 'last_name', 'email', 'mobile']],
             UserCar::class => ['type' => 'user_car', 'fields' => ['slug', 'user_id', 'car_id', 'color_id', 'manufactured_at', 'description']],
             CarCompany::class => ['type' => 'car_company', 'fields' => ['slug', 'name']],
