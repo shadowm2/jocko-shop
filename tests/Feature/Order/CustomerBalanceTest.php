@@ -214,3 +214,46 @@ it('links to the statement from the users list and the debts from the menu', fun
     $this->get(route('users.index'))->assertOk()->assertSee(route('users.statement', $this->ali), false);
     $this->get(route('dashboard'))->assertOk()->assertSee(route('payments.debts'), false);
 });
+
+it('ages each debt by the order\'s age, in brackets of 30, 60 and 90 days', function () {
+    ($this->order)($this->ali, 1000, 0, at: now()->subDays(5));
+    ($this->order)($this->ali, 2000, 500, at: now()->subDays(30));
+    ($this->order)($this->ali, 3000, 0, at: now()->subDays(31));
+    ($this->order)($this->ali, 4000, 0, at: now()->subDays(75));
+    ($this->order)($this->ali, 5000, 0, at: now()->subDays(91));
+    // Paid in full or cancelled: not owed.
+    ($this->order)($this->ali, 7000, 7000, at: now()->subDays(200));
+    ($this->order)($this->ali, 8000, 0, OrderStatus::CANCELLED, at: now()->subDays(200));
+
+    $row = ($this->balances)()->debtors()->sole();
+
+    expect($row['aging'])->toBe([2500.0, 3000.0, 4000.0, 5000.0])
+        ->and(array_sum($row['aging']))->toBe($row['balance']);
+});
+
+it('adds the age brackets up over every debtor', function () {
+    ($this->order)($this->ali, 1000, 0, at: now()->subDays(10));
+    ($this->order)($this->sara, 400, 0, at: now()->subDays(10));
+    ($this->order)($this->sara, 900, 100, at: now()->subDays(100));
+
+    $debtors = ($this->balances)()->debtors();
+
+    expect(($this->balances)()->agingTotals($debtors))->toBe([1400.0, 0.0, 0.0, 800.0])
+        ->and(($this->balances)()->agingTotals(collect()))->toBe([0.0, 0.0, 0.0, 0.0]);
+});
+
+it('shows the aging summary and what each customer owes over 60 days on the debts page', function () {
+    ($this->order)($this->ali, 1000, 0, at: now()->subDays(10));
+    ($this->order)($this->sara, 900, 100, at: now()->subDays(100));
+
+    $this->get(route('payments.debts'))->assertOk()
+        ->assertSee('data-aging', false)
+        ->assertSee('data-aging-bracket="0" data-amount="1000"', false)
+        ->assertSee('data-aging-bracket="3" data-amount="800"', false)
+        ->assertSee('data-owed-old="800"', false)
+        ->assertDontSee('data-owed-old="1000"', false);
+});
+
+it('has no aging summary when nobody owes', function () {
+    $this->get(route('payments.debts'))->assertOk()->assertDontSee('data-aging', false);
+});

@@ -20,9 +20,14 @@ use Modules\User\Models\User;
 /**
  * What a customer owes: per order, in total, who owes the most, and a text to remind them.
  * Cancelled orders are not owed.
+ *
+ * @phpstan-type Debtor array{user: User, balance: float, open_orders: int, oldest_at: ?CarbonInterface, last_reminder_at: ?CarbonImmutable, aging: list<float>}
  */
 class CustomerBalanceService
 {
+    /** An order's debt is aged from its creation: up to 30 days, 31-60, 61-90, and over 90. */
+    public const AGING_DAYS = [30, 60, 90];
+
     /**
      * The customer's orders (not cancelled), newest first, each with its total and what was paid.
      *
@@ -44,7 +49,7 @@ class CustomerBalanceService
     /**
      * Customers who owe something, the most first.
      *
-     * @return Collection<int, array{user: User, balance: float, open_orders: int, oldest_at: ?CarbonInterface, last_reminder_at: ?CarbonImmutable}>
+     * @return Collection<int, Debtor>
      */
     public function debtors(): Collection
     {
@@ -54,6 +59,7 @@ class CustomerBalanceService
         $reminded = PaymentReminder::query()->where('status', 'sent')->whereIn('user_id', $owing->keys())
             ->selectRaw('user_id, max(created_at) as last_at')->groupBy('user_id')->pluck('last_at', 'user_id');
 
+        /** @var list<Debtor> $rows */
         $rows = [];
 
         foreach ($owing as $userId => $orders) {
@@ -68,6 +74,7 @@ class CustomerBalanceService
                 'balance' => round((float) $orders->sum(fn (Order $order): float => $this->owed($order)), 2),
                 'open_orders' => $orders->count(),
                 'oldest_at' => $this->oldest($orders),
+                'aging' => $this->aging($orders),
                 'last_reminder_at' => isset($reminded[$userId]) ? Date::parse($reminded[$userId]) : null,
             ];
         }
@@ -75,6 +82,20 @@ class CustomerBalanceService
         usort($rows, fn (array $a, array $b): int => $b['balance'] <=> $a['balance']);
 
         return collect($rows);
+    }
+
+    /**
+     * What is owed in each age bracket, added up over a list of debtors.
+     *
+     * @param  Collection<int, Debtor>  $debtors
+     * @return list<float>
+     */
+    public function agingTotals(Collection $debtors): array
+    {
+        return array_map(
+            fn (int $bracket): float => round((float) $debtors->sum(fn (array $row): float => $row['aging'][$bracket]), 2),
+            array_keys($this->emptyAging()),
+        );
     }
 
     /**
@@ -170,6 +191,39 @@ class CustomerBalanceService
         $at = $orders->sortBy('created_at')->first()?->getAttribute('created_at');
 
         return $at instanceof CarbonInterface ? $at : null;
+    }
+
+    /**
+     * What these orders owe, split by how old each order is.
+     *
+     * @param  Collection<int, Order>  $orders
+     * @return list<float>
+     */
+    private function aging(Collection $orders): array
+    {
+        $brackets = $this->emptyAging();
+
+        foreach ($orders as $order) {
+            $owed = $this->owed($order);
+
+            if ($owed <= 0) {
+                continue;
+            }
+
+            $days = (int) $order->created_at->diffInDays(now());
+            $bracket = count(array_filter(self::AGING_DAYS, fn (int $limit): bool => $days > $limit));
+            $brackets[$bracket] += $owed;
+        }
+
+        return array_values(array_map(fn (float $amount): float => round($amount, 2), $brackets));
+    }
+
+    /**
+     * @return list<float>
+     */
+    private function emptyAging(): array
+    {
+        return array_fill(0, count(self::AGING_DAYS) + 1, 0.0);
     }
 
     private function owed(Order $order): float
