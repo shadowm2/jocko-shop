@@ -4,6 +4,7 @@
             :image="$row->images->first()"
             :alt="$row->name"
             :name="$row->name"
+            :label="__('inventory::attributes.Item Name')"
             :initial="mb_strtoupper(mb_substr($row->name, 0, 3))"
         />
     </x-table.cell>

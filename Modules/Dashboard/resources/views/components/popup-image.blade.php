@@ -3,6 +3,7 @@
     'alt' => 'alt',
     'initial' => '',
     'name' => '',
+    'label' => '',
 ])
 
 @php
@@ -38,8 +39,7 @@
         >
             <div class="flex flex-col items-start justify-center p-5 gap-2">
                 <flux:heading size="lg">
-                    <!-- TODO: Change this !-->
-                    {{ __('car::attributes.Car Company Name') }}:
+                    {{ $label }}:
                     <span class="font-bold text-lg">
                         {{ $name }}
                     </span>
