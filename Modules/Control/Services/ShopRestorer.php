@@ -5,10 +5,14 @@ namespace Modules\Control\Services;
 use Closure;
 use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Schema;
 use Modules\Control\Exceptions\ControlException;
 use Modules\Dashboard\Models\Media;
+use Modules\User\Models\User;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /**
  * Rebuilds a lost installation from the copy Jocko Control keeps.
@@ -25,6 +29,9 @@ use Modules\Dashboard\Models\Media;
 #[Singleton]
 class ShopRestorer
 {
+    /** @var array<int, list<string>> user id => role names, applied at the end */
+    private array $pendingRoles = [];
+
     public function __construct(
         private readonly ControlClient $client,
         private readonly SyncEntities $entities,
@@ -50,7 +57,8 @@ class ShopRestorer
 
     /**
      * Entity types that already have rows here. Staff accounts are allowed to
-     * exist: whoever set the new installation up has to be able to sign in.
+     * exist (whoever set the new installation up has to be able to sign in), and
+     * so are the built-in roles every installation starts with.
      *
      * @return array<string, int> entity type => rows
      */
@@ -59,7 +67,7 @@ class ShopRestorer
         $existing = [];
 
         foreach ($this->restorable() as $type => $class) {
-            if ($type === 'user') {
+            if (in_array($type, ['user', 'role'], true)) {
                 continue;
             }
 
@@ -96,6 +104,7 @@ class ShopRestorer
     public function restore(?Closure $progress = null): array
     {
         $written = [];
+        $this->pendingRoles = [];
 
         Schema::disableForeignKeyConstraints();
 
@@ -120,6 +129,8 @@ class ShopRestorer
                     }
                 } while ($page['next'] !== null);
             }
+
+            $this->assignRoles();
         } finally {
             Schema::enableForeignKeyConstraints();
         }
@@ -128,11 +139,57 @@ class ShopRestorer
     }
 
     /**
+     * A role is found or created by name (a fresh install already has manager and cashier),
+     * and holds the permissions it had.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    private function writeRole(array $record): void
+    {
+        $name = $record['name'] ?? null;
+
+        if (! is_string($name) || $name === '') {
+            return;
+        }
+
+        $role = Role::withoutEvents(fn () => Role::findOrCreate($name, is_string($record['guard_name'] ?? null) ? $record['guard_name'] : 'web'));
+        $known = Permission::query()->whereIn('name', $this->names($record['permissions'] ?? null))->pluck('name')->all();
+
+        Role::withoutEvents(fn () => $role->syncPermissions($known));
+    }
+
+    /**
+     * Roles are applied once every role exists.
+     */
+    private function assignRoles(): void
+    {
+        foreach ($this->pendingRoles as $userId => $names) {
+            $existing = Role::query()->whereIn('name', $names)->pluck('name')->all();
+
+            User::withoutEvents(fn () => User::query()->find($userId)?->syncRoles($existing));
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function names(mixed $list): array
+    {
+        return is_string($list) && $list !== '' ? array_values(array_filter(explode(',', $list))) : [];
+    }
+
+    /**
      * @param  class-string<Model>  $class
      * @param  array<string, mixed>  $record
      */
     private function write(string $class, array $record): void
     {
+        if ($class === Role::class) {
+            $this->writeRole($record);
+
+            return;
+        }
+
         $id = $record['id'] ?? null;
 
         if (! is_int($id)) {
@@ -141,6 +198,9 @@ class ShopRestorer
 
         /** @var Model $model */
         $model = $this->entities->queryWithDeleted($class)->find($id) ?? new $class;
+
+        // Not a column: which roles the staff member had, applied once all roles exist.
+        $roles = $class === User::class ? $this->names(Arr::pull($record, 'roles')) : [];
 
         // The mirror never keeps the per-method totals of a daily close; the column is required.
         if (! $model->exists && $model instanceof \Modules\Order\Models\CashClose) {
@@ -177,5 +237,9 @@ class ShopRestorer
         }
 
         $class::withoutEvents(fn () => $model->save());
+
+        if ($roles !== []) {
+            $this->pendingRoles[$id] = $roles;
+        }
     }
 }

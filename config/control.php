@@ -25,6 +25,7 @@ use Modules\Order\Models\Order;
 use Modules\Order\Models\OrderItem;
 use Modules\Order\Models\Payment;
 use Modules\User\Models\User;
+use Spatie\Permission\Models\Role;
 
 return [
     /*
@@ -52,9 +53,11 @@ return [
     | change) and pushed by `control:push`.
     |
     | `fields` is an ALLOWLIST. Anything not listed is never sent, which is how
-    | passwords, OTP codes, tokens and settings stay on this machine. id,
-    | created_at, updated_at and deleted_at are always included. Never add a
-    | credential here. Keep the entity keys and fields in step with
+    | OTP codes, tokens and settings stay on this machine. id, created_at,
+    | updated_at and deleted_at are always included. The one secret sent on
+    | purpose is a user's password HASH (never the password), so a lost shop can
+    | be rebuilt with its staff able to sign in. Never add a token, an OTP or a
+    | setting here. Keep the entity keys and fields in step with
     | config/shop_data.php of jocko-control.
     */
     'sync' => [
@@ -68,7 +71,10 @@ return [
             Payment::class => ['type' => 'payment', 'fields' => ['slug', 'order_id', 'amount', 'method', 'paid_at', 'description', 'cheque_number', 'cheque_bank', 'cheque_due_at', 'cheque_status']],
             // The nested per-method `totals` is left out: it only repeats the day's payments, which are sent anyway.
             CashClose::class => ['type' => 'cash_close', 'fields' => ['business_date', 'expected_cash', 'counted_cash', 'difference', 'note', 'closed_by']],
-            User::class => ['type' => 'user', 'fields' => ['slug', 'type', 'first_name', 'last_name', 'email', 'mobile']],
+            // The password is the hash only, never the password itself. `roles` is added by SyncEntities.
+            User::class => ['type' => 'user', 'fields' => ['slug', 'type', 'first_name', 'last_name', 'email', 'mobile', 'password']],
+            // A role and, added by SyncEntities, the permissions it holds.
+            Role::class => ['type' => 'role', 'fields' => ['name', 'guard_name']],
             UserCar::class => ['type' => 'user_car', 'fields' => ['slug', 'user_id', 'car_id', 'color_id', 'manufactured_at', 'description']],
             CarCompany::class => ['type' => 'car_company', 'fields' => ['slug', 'name']],
             Car::class => ['type' => 'car', 'fields' => ['slug', 'car_company_id', 'name']],

@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Modules\Dashboard\Models\Media;
+use Modules\User\Models\User;
 use Ramsey\Uuid\Uuid;
+use Spatie\Permission\Models\Role;
 
 /**
  * Which models are sent to Jocko Control and which of their fields may leave
@@ -79,6 +81,18 @@ class SyncEntities
     public function payloadOf(Model $model): array
     {
         $payload = array_intersect_key($model->attributesToArray(), array_flip($this->fieldsOf($model)));
+
+        // A hidden attribute (the password hash) is left out of attributesToArray(); it is listed on purpose.
+        foreach (array_intersect($model->getHidden(), $this->fieldsOf($model)) as $field) {
+            $payload[$field] = $model->getAttributes()[$field] ?? null;
+        }
+
+        // Which roles a staff member has, and which permissions a role holds, are not columns.
+        if ($model instanceof User) {
+            $payload['roles'] = $model->roles()->orderBy('name')->pluck('name')->implode(',');
+        } elseif ($model instanceof Role) {
+            $payload['permissions'] = $model->permissions()->orderBy('name')->pluck('name')->implode(',');
+        }
 
         // A picture says which record it belongs to by entity type, not by PHP class name.
         if ($model instanceof Media) {

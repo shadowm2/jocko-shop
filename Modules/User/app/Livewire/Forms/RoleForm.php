@@ -6,6 +6,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Form;
 use Modules\User\Enums\UserPermission;
 use Modules\User\Enums\UserRole;
+use Modules\User\Services\StaffRoles;
 use Spatie\Permission\Models\Role;
 
 class RoleForm extends Form
@@ -58,6 +59,6 @@ class RoleForm extends Form
         }
 
         $role->save();
-        $role->syncPermissions($this->isManager() ? UserPermission::values() : $data['permissions']);
+        resolve(StaffRoles::class)->setPermissions($role, $this->isManager() ? UserPermission::values() : $data['permissions']);
     }
 }

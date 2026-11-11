@@ -5,6 +5,7 @@ namespace Modules\Control\Providers;
 use App\Providers\BaseModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\DevCommands;
+use Illuminate\Support\Facades\Event;
 use Modules\Control\Console\HeartbeatCommand;
 use Modules\Control\Console\PollCommand;
 use Modules\Control\Console\PushCommand;
@@ -15,7 +16,10 @@ use Modules\Control\Exceptions\ControlException;
 use Modules\Control\Observers\SyncedModelObserver;
 use Modules\Control\Services\ControlClient;
 use Modules\Control\Services\OutboxPusher;
+use Modules\Control\Services\OutboxRecorder;
 use Modules\Control\Services\SyncEntities;
+use Modules\User\Events\StaffRolesChanged;
+use Throwable;
 
 class ControlServiceProvider extends BaseModuleServiceProvider
 {
@@ -60,6 +64,21 @@ class ControlServiceProvider extends BaseModuleServiceProvider
         foreach (resolve(SyncEntities::class)->models() as $model) {
             $model::observe(SyncedModelObserver::class);
         }
+
+        // Who has which role, and what a role may do, are not columns: announce them by hand.
+        Event::listen(StaffRolesChanged::class, function (StaffRolesChanged $event): void {
+            $outbox = resolve(OutboxRecorder::class);
+
+            if (! $outbox->isRecording()) {
+                return;
+            }
+
+            try {
+                $outbox->record($event->model, 'updated');
+            } catch (Throwable $e) {
+                report($e);
+            }
+        });
 
         // `composer dev` should run the scheduler too, or the heartbeat never fires.
         if ($this->app->isLocal()) {

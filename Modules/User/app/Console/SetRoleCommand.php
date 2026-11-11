@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Modules\User\Enums\UserRole;
 use Modules\User\Enums\UserType;
 use Modules\User\Models\User;
+use Modules\User\Services\StaffRoles;
 
 #[Signature('user:role {mobile : The staff member\'s mobile number} {role : manager or cashier}')]
 #[Description('Make a staff member a manager or a cashier')]
@@ -31,7 +32,7 @@ class SetRoleCommand extends Command
             return self::FAILURE;
         }
 
-        $user->syncRoles([$role->value]);
+        resolve(StaffRoles::class)->assign($user, $role->value);
         $this->components->info("{$user->first_name} {$user->last_name} is now a {$role->value}.");
 
         return self::SUCCESS;
