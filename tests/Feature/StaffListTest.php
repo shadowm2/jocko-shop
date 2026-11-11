@@ -69,3 +69,17 @@ it('has a first-level Staff menu and no starter-kit links', function () {
         ->assertDontSee('livewire-starter-kit', false)
         ->assertDontSee('laravel.com/docs/starter-kits', false);
 });
+
+it('shows each staff member\'s current role selected in the list, and the new one after a change', function () {
+    $staff = User::factory()->create(['type' => UserType::Admin, 'first_name' => 'Reza'])->assignRole('cashier');
+
+    $selected = fn (string $html): array => collect(
+        preg_match_all('/<option[^>]*value="([^"]*)"[^>]*selected|<option[^>]*selected[^>]*value="([^"]*)"/', $html, $m, PREG_SET_ORDER) ? $m : [],
+    )->map(fn ($match) => $match[1] !== '' ? $match[1] : ($match[2] ?? ''))->all();
+
+    $component = Livewire::test(StaffList::class);
+    expect($selected($component->html()))->toContain('cashier');
+
+    $component->call('setRole', $staff->id, 'manager');
+    expect($selected($component->html()))->toContain('manager')->not->toContain('cashier');
+});
