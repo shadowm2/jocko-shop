@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Modules\Car\Models\Car;
+use Modules\Car\Models\CarCompany;
+use Modules\Car\Models\Color;
+use Modules\Car\Models\UserCar;
 use Modules\Control\Models\OutboxEvent;
 use Modules\Control\Services\ShopRestorer;
 use Modules\Control\Services\SyncEntities;
@@ -39,6 +43,13 @@ function mirrorThenLoseTheShopForRestore(): array
     $main = Warehouse::forceCreate(['name' => 'Main', 'slug' => 'main']);
     WarehouseItem::forceCreate(['slug' => 'main-oil', 'warehouse_id' => $main->id, 'item_id' => $oil->id, 'quantity' => 10]);
     CashClose::create(['business_date' => '2026-11-01', 'expected_cash' => 100, 'counted_cash' => 90, 'difference' => -10, 'totals' => ['cash' => 100], 'closed_by' => $admin->id]);
+
+    $customer = User::where('type', UserType::Customer)->firstOrFail();
+    $company = CarCompany::forceCreate(['slug' => 'saipa', 'name' => 'Saipa']);
+    $car = Car::forceCreate(['slug' => 'pride', 'name' => 'Pride', 'car_company_id' => $company->id]);
+    $color = Color::forceCreate(['slug' => 'red', 'name' => 'Red', 'hex' => '#ff0000']);
+    // Entered the way the form does: a Jalali date.
+    UserCar::forceCreate(['slug' => 'uc-1', 'user_id' => $customer->id, 'car_id' => $car->id, 'color_id' => $color->id, 'manufactured_at' => '1395/05/10', 'description' => 'Daily car']);
 
     $mirror = [];
 
@@ -82,7 +93,8 @@ it('rebuilds the business data of a lost shop exactly as it was', function () {
         ->and(Brand::onlyTrashed()->pluck('name')->all())->toBe(['Mann'])
         ->and(WarehouseItem::sole()->quantity)->toEqual(10)
         ->and(CashClose::sole()->difference)->toEqual(-10)
-        ->and(CashClose::sole()->totals)->toBe([]);
+        ->and(CashClose::sole()->totals)->toBe([])
+        ->and(UserCar::sole()->manufactured_at->toDateString())->toBe('2016-07-31');
 
     // Everything restored is state the shop would send again: it must match what Control had.
     foreach ($mirror as $type => $records) {

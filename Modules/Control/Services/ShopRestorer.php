@@ -148,14 +148,33 @@ class ShopRestorer
         }
 
         // Control sends UTC ISO 8601 ("...Z"); the columns want the app's own time zone.
+        $inDatabaseForm = fn (mixed $value): mixed => is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}T/', $value) === 1
+            ? Date::parse($value)->setTimezone((string) config('app.timezone'))->format('Y-m-d H:i:s')
+            : $value;
+
         foreach (['created_at', 'updated_at', 'deleted_at'] as $column) {
-            if (is_string($record[$column] ?? null)) {
-                $record[$column] = Date::parse($record[$column])->setTimezone((string) config('app.timezone'))->format('Y-m-d H:i:s');
+            if (array_key_exists($column, $record)) {
+                $record[$column] = $inDatabaseForm($record[$column]);
+            }
+        }
+
+        // A field with its own setter (a car's manufacture date takes a Jalali date from a form)
+        // expects form input, not the stored value Control hands back: write those as they are.
+        $raw = [];
+
+        foreach ($record as $column => $value) {
+            if ($model->hasSetMutator($column)) {
+                $raw[$column] = $inDatabaseForm($value);
+                unset($record[$column]);
             }
         }
 
         $model->timestamps = false;
         $model->forceFill($record);
+
+        if ($raw !== []) {
+            $model->setRawAttributes([...$model->getAttributes(), ...$raw]);
+        }
 
         $class::withoutEvents(fn () => $model->save());
     }
