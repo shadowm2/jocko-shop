@@ -24,13 +24,20 @@ use Modules\Dashboard\Livewire\WarehouseSettings;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/dashboard', Overview::class)->name('dashboard');
-    Route::livewire('/reports', Reports::class)->name('reports.index');
-    Route::livewire('/system-settings', SystemSettings::class)->name('system-settings.edit');
-    Route::livewire('/settings/jocko-control', JockoControlSettings::class)->name('jocko-control-settings.edit');
-    Route::livewire('/settings/jocko-control/queue', JockoControlQueue::class)->name('jocko-control-queue.index');
-    Route::livewire('/settings/backups', Backups::class)->name('backups.index');
-    Route::get('/settings/backups/{name}/download', BackupDownloadController::class)->name('backups.download');
-    Route::livewire('/settings/warehouses', WarehouseSettings::class)->name('warehouse-settings.edit');
+    Route::livewire('/reports', Reports::class)->name('reports.index')
+        ->middleware('manager');
+    Route::livewire('/system-settings', SystemSettings::class)->name('system-settings.edit')
+        ->middleware('manager');
+    Route::livewire('/settings/jocko-control', JockoControlSettings::class)->name('jocko-control-settings.edit')
+        ->middleware('manager');
+    Route::livewire('/settings/jocko-control/queue', JockoControlQueue::class)->name('jocko-control-queue.index')
+        ->middleware('manager');
+    Route::livewire('/settings/backups', Backups::class)->name('backups.index')
+        ->middleware('manager');
+    Route::get('/settings/backups/{name}/download', BackupDownloadController::class)->name('backups.download')
+        ->middleware('manager');
+    Route::livewire('/settings/warehouses', WarehouseSettings::class)->name('warehouse-settings.edit')
+        ->middleware('manager');
 
     Route::prefix('countries')->as('countries.')->group(function () {
         Route::livewire('/list', CountryList::class)->name('index');

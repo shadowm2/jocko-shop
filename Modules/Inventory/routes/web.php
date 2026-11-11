@@ -46,13 +46,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    Route::prefix('purchases')->as('purchases.')->group(function () {
+    Route::prefix('purchases')->middleware('manager')->as('purchases.')->group(function () {
         Route::livewire('/list', PurchaseList::class)->name('index');
         Route::livewire('/new', PurchaseCreate::class)->name('create');
         Route::livewire('/{purchase}/edit', PurchaseEdit::class)->name('edit');
     });
 
-    Route::prefix('suppliers')->as('suppliers.')->group(function () {
+    Route::prefix('suppliers')->middleware('manager')->as('suppliers.')->group(function () {
         Route::livewire('/list', SupplierList::class)->name('index');
         Route::livewire('/new', SupplierCreate::class)->name('create');
         Route::livewire('/{supplier}/edit', SupplierEdit::class)->name('edit');
@@ -66,8 +66,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('items')->as('items.')->group(function () {
         Route::livewire('/list', ItemList::class)->name('index');
-        Route::livewire('/new', ItemCreate::class)->name('create');
-        Route::livewire('/{item}/edit', ItemEdit::class)->name('edit');
+        Route::livewire('/new', ItemCreate::class)->middleware('manager')->name('create');
+        Route::livewire('/{item}/edit', ItemEdit::class)->middleware('manager')->name('edit');
 
         Route::prefix('{item}/brands')->as('brands.')->group(function () {
             Route::livewire('/list', ItemBrandList::class)->name('index');
@@ -78,8 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('stock-movements')->as('stock-movements.')->group(function () {
         Route::livewire('/list', StockMovementList::class)->name('index');
-        Route::livewire('/new', StockAdjustmentCreate::class)->name('create');
-        Route::livewire('/transfer', StockTransferCreate::class)->name('transfer');
+        Route::livewire('/new', StockAdjustmentCreate::class)->middleware('manager')->name('create');
+        Route::livewire('/transfer', StockTransferCreate::class)->middleware('manager')->name('transfer');
     });
 
     Route::prefix('warehouses')->as('warehouses.')->group(function () {
