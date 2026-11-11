@@ -4,7 +4,7 @@
 >
 
     <flux:card class="space-y-6">
-        <x-user::user-fields />
+        <x-user::user-fields :user="$user ?? null" />
     </flux:card>
 
     <div class="flex justify-start gap-3">

@@ -1,3 +1,4 @@
+@props(['user' => null])
 <div>
     <flux:heading size="lg">
         {{ __('user::strings.User Information') }}
@@ -81,3 +82,20 @@
     />
     <flux:error name="form.password_confirmation" />
 </flux:field>
+
+@if ($user?->type === \Modules\User\Enums\UserType::Admin && auth()->user()?->can('roles.manage'))
+    <flux:field>
+        <flux:label>{{ __('user::strings.Role') }}</flux:label>
+
+        <flux:select wire:model="form.role">
+            <flux:select.option value="">{{ __('user::strings.No role (full access)') }}</flux:select.option>
+            @foreach (\Spatie\Permission\Models\Role::query()->orderBy('id')->pluck('name') as $roleName)
+                <flux:select.option :value="$roleName">
+                    {{ in_array($roleName, ['manager', 'cashier'], true) ? __('user::strings.role.'.$roleName) : $roleName }}
+                </flux:select.option>
+            @endforeach
+        </flux:select>
+
+        <flux:error name="form.role" />
+    </flux:field>
+@endif

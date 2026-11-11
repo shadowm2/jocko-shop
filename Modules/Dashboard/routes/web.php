@@ -25,19 +25,19 @@ use Modules\Dashboard\Livewire\WarehouseSettings;
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/dashboard', Overview::class)->name('dashboard');
     Route::livewire('/reports', Reports::class)->name('reports.index')
-        ->middleware('manager');
+        ->middleware('can:reports.view');
     Route::livewire('/system-settings', SystemSettings::class)->name('system-settings.edit')
-        ->middleware('manager');
+        ->middleware('can:settings.manage');
     Route::livewire('/settings/jocko-control', JockoControlSettings::class)->name('jocko-control-settings.edit')
-        ->middleware('manager');
+        ->middleware('can:settings.manage');
     Route::livewire('/settings/jocko-control/queue', JockoControlQueue::class)->name('jocko-control-queue.index')
-        ->middleware('manager');
+        ->middleware('can:settings.manage');
     Route::livewire('/settings/backups', Backups::class)->name('backups.index')
-        ->middleware('manager');
+        ->middleware('can:backups.manage');
     Route::get('/settings/backups/{name}/download', BackupDownloadController::class)->name('backups.download')
-        ->middleware('manager');
+        ->middleware('can:backups.manage');
     Route::livewire('/settings/warehouses', WarehouseSettings::class)->name('warehouse-settings.edit')
-        ->middleware('manager');
+        ->middleware('can:settings.manage');
 
     Route::prefix('countries')->as('countries.')->group(function () {
         Route::livewire('/list', CountryList::class)->name('index');

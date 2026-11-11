@@ -3,9 +3,12 @@
 namespace Modules\User\Providers;
 
 use App\Providers\BaseModuleServiceProvider;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Modules\User\Console\SetRoleCommand;
+use Modules\User\Enums\UserPermission;
 use Modules\User\Livewire\Settings\DeleteUserForm;
+use Modules\User\Models\User;
 
 class UserServiceProvider extends BaseModuleServiceProvider
 {
@@ -42,5 +45,8 @@ class UserServiceProvider extends BaseModuleServiceProvider
     {
         parent::boot();
         Livewire::component('user.settings.delete-user-form', DeleteUserForm::class);
+
+        // Staff with no role keep full access, so shops that existed before roles are not locked out.
+        Gate::before(fn (?User $user, string $ability): ?bool => $user !== null && in_array($ability, UserPermission::values(), true) && $user->roles->isEmpty() ? true : null);
     }
 }

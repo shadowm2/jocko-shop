@@ -44,7 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('/close', DailyClose::class)->name('close');
         Route::livewire('/list', PaymentsList::class)->name('index');
         Route::livewire('/new', PaymentCreate::class)->name('create');
-        Route::livewire('/{payment}/edit', PaymentEdit::class)->middleware('manager')->name('edit');
+        Route::livewire('/{payment}/edit', PaymentEdit::class)->middleware('can:payments.edit')->name('edit');
         Route::livewire('/{payment}/receipt', PaymentReceipt::class)->name('receipt');
     });
 });
