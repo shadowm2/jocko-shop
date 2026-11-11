@@ -19,6 +19,8 @@ class ControlAgent
         private readonly ControlLink $link,
         private readonly DeviceStatus $status,
         private readonly RemoteCommandRunner $runner,
+        private readonly PictureMode $pictures,
+        private readonly OutboxSnapshot $snapshot,
     ) {}
 
     /**
@@ -37,6 +39,12 @@ class ControlAgent
             $this->link->failed($e);
 
             throw $e;
+        }
+
+        // Jocko Control says whether it wants originals or previews; a change means the
+        // pictures it already has are the wrong kind, so send them again.
+        if ($this->pictures->update($response['pictures'] ?? null)) {
+            $this->snapshot->enqueue(['media']);
         }
 
         $pending = (int) ($response['pending_commands'] ?? 0);
