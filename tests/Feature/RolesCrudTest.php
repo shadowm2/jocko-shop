@@ -136,3 +136,15 @@ it('does not show the role picker for customers', function () {
     $this->get(route('users.edit', $customer))->assertOk()->assertDontSee(__('user::strings.No role (full access)'));
     $this->get(route('users.edit', User::factory()->create(['type' => UserType::Admin])))->assertSee(__('user::strings.No role (full access)'));
 });
+
+it('shows a built-in role\'s name as text in the current language and a custom role\'s as an input', function () {
+    $this->get(route('roles.edit', ($this->role)('cashier')))
+        ->assertOk()
+        ->assertSee('data-builtin-role-name', false)
+        ->assertSee(__('user::strings.role.cashier'))
+        ->assertDontSee('wire:model="form.name"', false);
+
+    $custom = Role::create(['name' => 'Clerk', 'guard_name' => 'web']);
+
+    $this->get(route('roles.edit', $custom))->assertOk()->assertSee('wire:model="form.name"', false)->assertDontSee('data-builtin-role-name', false);
+});
