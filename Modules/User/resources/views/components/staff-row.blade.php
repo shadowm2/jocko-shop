@@ -11,13 +11,12 @@
         @if ($canAssign)
             <flux:select
                 size="sm"
-                :value="$current"
                 wire:change="setRole({{ $row->id }}, $event.target.value)"
                 wire:key="role-{{ $row->id }}-{{ $current }}"
             >
-                <flux:select.option value="">{{ __('user::strings.No role (full access)') }}</flux:select.option>
+                <flux:select.option value="" :selected="$current === ''">{{ __('user::strings.No role (full access)') }}</flux:select.option>
                 @foreach ($roles as $roleName)
-                    <flux:select.option :value="$roleName">{{ $label($roleName) }}</flux:select.option>
+                    <flux:select.option :value="$roleName" :selected="$roleName === $current">{{ $label($roleName) }}</flux:select.option>
                 @endforeach
             </flux:select>
         @else
