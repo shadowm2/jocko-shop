@@ -294,3 +294,39 @@ test('an older Jocko Control that never says keeps getting previews', function (
 
     expect(resolve(Modules\Control\Services\PictureMode::class)->keepsOriginals())->toBeFalse();
 });
+
+test('each upload says whether it is the original or a downsized preview', function () {
+    $kindSent = function (): string {
+        $upload = collect(Http::recorded())->map(fn (array $pair) => $pair[0])->first(fn (Request $request) => str_ends_with($request->url(), '/sync/files'));
+
+        return (string) collect($upload->data())->pluck('contents', 'name')['kind'];
+    };
+
+    // A preview when Jocko Control wants previews.
+    mediaControl();
+    picture(ownerBrand('Bosch'), pictureBytes(1600, 1200));
+    resolve(OutboxPusher::class)->push();
+    expect($kindSent())->toBe('preview');
+
+    // The original when it wants originals.
+    mediaControl();
+    Brand::query()->delete();
+    OutboxEvent::query()->delete();
+    resolve(Modules\Control\Services\PictureMode::class)->update('original');
+    picture(ownerBrand('Mann'), pictureBytes(1600, 1200), 'second.jpg');
+    resolve(OutboxPusher::class)->push();
+    expect($kindSent())->toBe('original');
+});
+
+test('an original that is too big is sent as a preview and says so', function () {
+    mediaControl();
+    resolve(Modules\Control\Services\PictureMode::class)->update('original');
+    config(['control.files.max_original_bytes' => 1000]);
+    picture(ownerBrand(), pictureBytes(1600, 1200));
+
+    resolve(OutboxPusher::class)->push();
+
+    $upload = collect(Http::recorded())->map(fn (array $pair) => $pair[0])->first(fn (Request $request) => str_ends_with($request->url(), '/sync/files'));
+
+    expect((string) collect($upload->data())->pluck('contents', 'name')['kind'])->toBe('preview');
+});

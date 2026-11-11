@@ -19,7 +19,7 @@ class MediaPreview
     private const SOURCES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
     /**
-     * @return array{bytes: string, mime: string, sha256: string}|null
+     * @return array{bytes: string, mime: string, sha256: string, kind: 'original'|'preview'}|null
      */
     public function make(Media $media): ?array
     {
@@ -59,7 +59,7 @@ class MediaPreview
             return null;
         }
 
-        return ['bytes' => $encoded, 'mime' => $transparent ? 'image/png' : 'image/jpeg', 'sha256' => hash('sha256', $encoded)];
+        return ['bytes' => $encoded, 'mime' => $transparent ? 'image/png' : 'image/jpeg', 'sha256' => hash('sha256', $encoded), 'kind' => 'preview'];
     }
 
     /**
@@ -67,7 +67,7 @@ class MediaPreview
      * cannot be sent as it is (gone, not a type Jocko Control accepts, too big),
      * so the caller falls back to a preview.
      *
-     * @return array{bytes: string, mime: string, sha256: string}|null
+     * @return array{bytes: string, mime: string, sha256: string, kind: 'original'|'preview'}|null
      */
     public function original(Media $media): ?array
     {
@@ -87,7 +87,7 @@ class MediaPreview
             return null;
         }
 
-        return ['bytes' => $bytes, 'mime' => $info['mime'], 'sha256' => hash('sha256', $bytes)];
+        return ['bytes' => $bytes, 'mime' => $info['mime'], 'sha256' => hash('sha256', $bytes), 'kind' => 'original'];
     }
 
     /**

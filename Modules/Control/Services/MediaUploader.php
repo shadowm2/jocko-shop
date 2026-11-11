@@ -81,7 +81,7 @@ class MediaUploader
             }
 
             try {
-                $this->client->pushFile($media->getKey(), $preview['sha256'], $preview['mime'], $preview['bytes']);
+                $this->client->pushFile($media->getKey(), $preview['sha256'], $preview['mime'], $preview['bytes'], $preview['kind']);
             } catch (ControlException $e) {
                 if (! $this->giveUp($e, $event)) {
                     throw $e;
