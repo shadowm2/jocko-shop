@@ -17,6 +17,9 @@ class ImageForm extends Form
     /** @var array<int, int|string> */
     public array $deleted_images = [];
 
+    /** Livewire's own upload limit is 12 MB; PHP (upload_max_filesize) has to allow at least this much. */
+    public const MAX_KILOBYTES = 12288;
+
     /**
      * @param  Collection<int, Media>|Media|null  $media
      * @return array<string, mixed>
@@ -27,7 +30,7 @@ class ImageForm extends Form
             'deleted_images' => 'array',
             'deleted_images.*' => ' integer|exists:Modules\Dashboard\Models\Media,id',
             'images' => 'nullable|array',
-            'images.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:2048',
+            'images.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:'.self::MAX_KILOBYTES,
         ];
         if ($media === null) {
             $media = collect();
