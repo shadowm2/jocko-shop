@@ -89,6 +89,33 @@ class ControlClient
     }
 
     /**
+     * How many records of each entity Jocko Control can give back. Refused
+     * (403) unless an administrator has allowed a restore.
+     *
+     * @return array{allowed_until?: string|null, entities?: array<string, int>}
+     *
+     * @throws ControlException
+     */
+    public function restoreSummary(): array
+    {
+        return $this->data($this->send('get', 'restore'));
+    }
+
+    /**
+     * One page of an entity's records, after the given local id.
+     *
+     * @return array{records: list<array<string, mixed>>, next: int|null}
+     *
+     * @throws ControlException
+     */
+    public function restoreRecords(string $entity, int $after = 0): array
+    {
+        $data = $this->data($this->send('get', "restore/{$entity}", ['after' => $after]));
+
+        return ['records' => array_values(array_filter((array) ($data['records'] ?? []), 'is_array')), 'next' => isset($data['next']) ? (int) $data['next'] : null];
+    }
+
+    /**
      * @return list<array<string, mixed>>
      *
      * @throws ControlException
