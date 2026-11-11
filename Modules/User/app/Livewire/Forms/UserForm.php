@@ -8,6 +8,7 @@ use Livewire\Form;
 use Modules\User\Enums\UserPermission;
 use Modules\User\Enums\UserType;
 use Modules\User\Models\User;
+use Modules\User\Services\StaffRoles;
 use Modules\User\Services\UserService;
 
 class UserForm extends Form
@@ -65,7 +66,7 @@ class UserForm extends Form
             $userService->update($this->user, $data);
 
             if ($this->user->type === UserType::Admin && Gate::allows(UserPermission::ManageRoles->value)) {
-                $this->user->syncRoles($role === null || $role === '' ? [] : [$role]);
+                resolve(StaffRoles::class)->assign($this->user, $role);
             }
 
         } else {

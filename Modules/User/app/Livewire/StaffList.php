@@ -11,6 +11,7 @@ use Modules\Inventory\Livewire\Concerns\InteractsWithTableFilters;
 use Modules\User\Enums\UserPermission;
 use Modules\User\Enums\UserType;
 use Modules\User\Models\User;
+use Modules\User\Services\StaffRoles;
 use Spatie\Permission\Models\Role;
 
 class StaffList extends Component
@@ -37,7 +38,7 @@ class StaffList extends Component
             return;
         }
 
-        $user->syncRoles($role === '' ? [] : [$role]);
+        resolve(StaffRoles::class)->assign($user, $role);
         Flux::toast(__('user::messages.User updated successfully'), variant: 'success');
     }
 

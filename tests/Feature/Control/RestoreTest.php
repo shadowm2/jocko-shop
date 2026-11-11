@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Modules\Car\Models\Car;
 use Modules\Car\Models\CarCompany;
@@ -16,8 +17,12 @@ use Modules\Inventory\Models\UnitGroup;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Models\WarehouseItem;
 use Modules\Order\Models\CashClose;
+use Modules\User\Enums\UserPermission;
+use Modules\User\Enums\UserRole;
 use Modules\User\Enums\UserType;
 use Modules\User\Models\User;
+use Modules\User\Services\StaffRoles;
+use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     Cache::flush();
@@ -44,6 +49,12 @@ function mirrorThenLoseTheShopForRestore(): array
     WarehouseItem::forceCreate(['slug' => 'main-oil', 'warehouse_id' => $main->id, 'item_id' => $oil->id, 'quantity' => 10]);
     CashClose::create(['business_date' => '2026-11-01', 'expected_cash' => 100, 'counted_cash' => 90, 'difference' => -10, 'totals' => ['cash' => 100], 'closed_by' => $admin->id]);
 
+    $staffRoles = resolve(StaffRoles::class);
+    $accountant = Role::create(['name' => 'Accountant', 'guard_name' => 'web']);
+    $staffRoles->setPermissions($accountant, ['reports.view', 'backups.manage']);
+    $staffRoles->assign($admin, 'manager');
+    $staffRoles->assign(User::factory()->create(['type' => UserType::Admin, 'first_name' => 'Reza', 'password' => 'reza-secret']), 'Accountant');
+
     $customer = User::where('type', UserType::Customer)->firstOrFail();
     $company = CarCompany::forceCreate(['slug' => 'saipa', 'name' => 'Saipa']);
     $car = Car::forceCreate(['slug' => 'pride', 'name' => 'Pride', 'car_company_id' => $company->id]);
@@ -60,6 +71,11 @@ function mirrorThenLoseTheShopForRestore(): array
     foreach (resolve(SyncEntities::class)->models() as $class) {
         resolve(SyncEntities::class)->queryWithDeleted($class)->forceDelete();
     }
+    // A fresh installation has the built-in roles from its migration.
+    foreach (UserRole::cases() as $builtIn) {
+        Role::findOrCreate($builtIn->value, 'web');
+    }
+    Role::findByName('manager')->syncPermissions(UserPermission::values());
     OutboxEvent::query()->delete();
 
     return array_map('array_values', $mirror);
@@ -88,7 +104,7 @@ it('rebuilds the business data of a lost shop exactly as it was', function () {
 
     $this->artisan('control:restore', ['--yes' => true])->assertSuccessful();
 
-    expect(User::pluck('first_name')->sort()->values()->all())->toBe(['Ali', 'Maryam'])
+    expect(User::pluck('first_name')->sort()->values()->all())->toBe(['Ali', 'Maryam', 'Reza'])
         ->and(Brand::pluck('name')->all())->toBe(['Bosch'])
         ->and(Brand::onlyTrashed()->pluck('name')->all())->toBe(['Mann'])
         ->and(WarehouseItem::sole()->quantity)->toEqual(10)
@@ -100,9 +116,13 @@ it('rebuilds the business data of a lost shop exactly as it was', function () {
     foreach ($mirror as $type => $records) {
         foreach ($records as $record) {
             $class = collect(resolve(SyncEntities::class)->models())->first(fn ($c) => resolve(SyncEntities::class)->typeOf(new $c) === $type);
-            $restored = resolve(SyncEntities::class)->queryWithDeleted($class)->find($record['id']);
+            // A role is found by its name: its id on the new installation may differ.
+            $restored = $type === 'role'
+                ? Role::findByName($record['name'])
+                : resolve(SyncEntities::class)->queryWithDeleted($class)->find($record['id']);
+            $ignore = $type === 'role' ? ['id', 'created_at', 'updated_at'] : [];
 
-            expect(resolve(SyncEntities::class)->payloadOf($restored))->toEqual($record, "{$type} #{$record['id']} differs");
+            expect(Illuminate\Support\Arr::except(resolve(SyncEntities::class)->payloadOf($restored), $ignore))->toEqual(Illuminate\Support\Arr::except($record, $ignore), "{$type} #{$record['id']} differs");
         }
     }
 });
@@ -136,17 +156,40 @@ it('refuses a shop that already has data unless forced', function () {
     expect(Brand::pluck('name')->sort()->values()->all())->toBe(['Bosch', 'Existing']);
 });
 
-it('lets the person who set up the new installation keep their account', function () {
+it('puts back passwords, roles and what each role may do', function () {
     $mirror = mirrorThenLoseTheShopForRestore();
-    $mirror['user'][0]['mobile'] = '09120000001';
-    $setup = User::factory()->create(['id' => $mirror['user'][0]['id'], 'type' => UserType::Admin, 'first_name' => 'Installer', 'password' => 'secret-pass']);
-    $hash = $setup->password;
     fakeRestoreFromControl($mirror);
 
     $this->artisan('control:restore', ['--yes' => true])->assertSuccessful();
 
-    expect($setup->fresh()->password)->toBe($hash)
-        ->and($setup->fresh()->first_name)->toBe($mirror['user'][0]['first_name']);
+    $reza = User::where('first_name', 'Reza')->sole();
+
+    expect(Hash::check('reza-secret', $reza->password))->toBeTrue()
+        ->and($reza->getRoleNames()->all())->toBe(['Accountant'])
+        ->and(User::where('first_name', 'Maryam')->sole()->getRoleNames()->all())->toBe(['manager'])
+        ->and(Role::findByName('Accountant')->permissions->pluck('name')->sort()->values()->all())->toBe(['backups.manage', 'reports.view'])
+        ->and(Role::findByName('manager')->permissions)->toHaveCount(8);
+});
+
+it('does not duplicate the built-in roles a fresh installation already has', function () {
+    $mirror = mirrorThenLoseTheShopForRestore();
+    fakeRestoreFromControl($mirror);
+
+    $this->artisan('control:restore', ['--yes' => true])->assertSuccessful();
+
+    expect(Role::where('name', 'manager')->count())->toBe(1);
+});
+
+it('lets the person who set up the new installation be put back as they were', function () {
+    $mirror = mirrorThenLoseTheShopForRestore();
+    $first = collect($mirror['user'])->firstWhere('first_name', 'Maryam');
+    User::factory()->create(['id' => $first['id'], 'type' => UserType::Admin, 'first_name' => 'Installer', 'password' => 'installer-pass']);
+    fakeRestoreFromControl($mirror);
+
+    $this->artisan('control:restore', ['--yes' => true])->assertSuccessful();
+
+    $restored = User::findOrFail($first['id']);
+    expect($restored->first_name)->toBe('Maryam')->and($restored->password)->toBe($first['password']);
 });
 
 it('never restores pictures, which would point at files that are not here', function () {

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Modules\Control\Models\OutboxEvent;
 use Modules\Control\Services\SyncEntities;
@@ -103,7 +104,7 @@ test('incrementing stock quantity is a change worth sending', function () {
         ->and((float) $latest->payload['quantity'])->toBe(15.0);
 });
 
-test('secrets never reach the outbox', function () {
+test('only the password hash reaches the outbox, never a password, an OTP or a token', function () {
     $user = User::factory()->create([
         'first_name' => 'Ali',
         'password' => 'a-very-secret-Password-1',
@@ -116,18 +117,24 @@ test('secrets never reach the outbox', function () {
 
     expect($events)->toHaveCount(1)
         ->and($events->first()->payload)->toHaveKeys(['id', 'first_name', 'mobile'])
-        ->and(array_keys($events->first()->payload))->not->toContain('password', 'otp_code', 'otp_issued_at', 'remember_token')
+        ->and(array_keys($events->first()->payload))->not->toContain('otp_code', 'otp_issued_at', 'remember_token')
+        ->and($events->first()->payload['password'])->toStartWith('$2y$')
+        ->and(Hash::check('a-very-secret-Password-1', $events->first()->payload['password']))->toBeTrue()
         ->and($json)->not->toContain('a-very-secret-Password-1')
         ->not->toContain('123456')
         ->not->toContain('remember');
 });
 
 test('no credential field is allowlisted and settings are not synchronized', function () {
-    $forbidden = ['password', 'otp_code', 'otp_issued_at', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'token', 'api_key', 'value'];
+    $forbidden = ['otp_code', 'otp_issued_at', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'token', 'api_key', 'value'];
 
     foreach (config('control.sync.entities') as $class => $entity) {
         expect(array_intersect($forbidden, $entity['fields']))->toBe([], "{$class} must not send a credential");
     }
+
+    // The one secret sent on purpose is a user's password hash, for rebuilding a lost shop.
+    $sendingPassword = array_keys(array_filter(config('control.sync.entities'), fn (array $entity) => in_array('password', $entity['fields'], true)));
+    expect($sendingPassword)->toBe([User::class]);
 
     expect(array_keys(config('control.sync.entities')))->not->toContain(Setting::class);
 });
@@ -160,7 +167,7 @@ test('every configured model exists and is observed', function () {
             ->and($class::getEventDispatcher())->not->toBeNull();
     }
 
-    expect(resolve(SyncEntities::class)->models())->toHaveCount(25);
+    expect(resolve(SyncEntities::class)->models())->toHaveCount(26);
 });
 
 test('a closed day is sent without its nested totals', function () {
