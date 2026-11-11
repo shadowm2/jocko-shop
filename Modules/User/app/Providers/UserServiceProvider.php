@@ -4,6 +4,7 @@ namespace Modules\User\Providers;
 
 use App\Providers\BaseModuleServiceProvider;
 use Livewire\Livewire;
+use Modules\User\Console\SetRoleCommand;
 use Modules\User\Livewire\Settings\DeleteUserForm;
 
 class UserServiceProvider extends BaseModuleServiceProvider
@@ -23,7 +24,9 @@ class UserServiceProvider extends BaseModuleServiceProvider
      *
      * @var string[]
      */
-    // protected array $commands = [];
+    protected array $commands = [
+        SetRoleCommand::class,
+    ];
 
     /**
      * Provider classes to register.

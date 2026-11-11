@@ -89,6 +89,7 @@
                 >
                     {{ __('dashboard::strings.Dashboard') }}
                 </flux:sidebar.item>
+@unless (auth()->user()?->isCashier())
                 <flux:sidebar.item
                     icon="chart-bar"
                     :href="route('reports.index')"
@@ -97,6 +98,7 @@
                 >
                     {{ __('dashboard::strings.Reports') }}
                 </flux:sidebar.item>
+@endunless
                 <flux:sidebar.group
                     expandable
                     icon="circle-stack"
@@ -128,6 +130,7 @@
                             {{ __('inventory::strings.Item Create') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
+@unless (auth()->user()?->isCashier())
                     <flux:sidebar.group
                         expandable
                         icon="truck"
@@ -151,7 +154,9 @@
                             {{ __('inventory::strings.Supplier Add') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
+@endunless
 
+@unless (auth()->user()?->isCashier())
                     <flux:sidebar.group
                         expandable
                         :heading="__('inventory::strings.Purchases')"
@@ -175,6 +180,7 @@
                             {{ __('inventory::strings.Purchase Add') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
+@endunless
                     @if ($showWarehouseMenu)
                     <flux:sidebar.group
                         expandable
@@ -550,6 +556,7 @@
                     >
                         {{ __('dashboard::strings.Countries') }}
                     </flux:sidebar.item>
+@unless (auth()->user()?->isCashier())
                     <flux:sidebar.item icon="signal" :href="route('jocko-control-settings.edit')" :current="request()->routeIs('jocko-control-settings.edit')" wire:navigate>
                         {{ __('dashboard::strings.Jocko Control') }}
                     </flux:sidebar.item>
@@ -562,6 +569,7 @@
                     <flux:sidebar.item icon="shelving-unit" :href="route('warehouse-settings.edit')" :current="request()->routeIs('warehouse-settings.edit')" wire:navigate>
                         {{ __('dashboard::strings.Warehouse Settings') }}
                     </flux:sidebar.item>
+@endunless
                     <flux:sidebar.item
                         icon="map-pin"
                         :href="route('provinces.index')"
@@ -601,6 +609,7 @@
                             {{ __('dashboard::strings.Category Create') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
+@unless (auth()->user()?->isCashier())
                     <flux:sidebar.item
                         icon="key"
                         :href="route('system-settings.edit')"
@@ -609,6 +618,7 @@
                     >
                         {{ __('dashboard::strings.System Settings') }}
                     </flux:sidebar.item>
+@endunless
                 </flux:sidebar.group>
             </flux:sidebar.group>
 
