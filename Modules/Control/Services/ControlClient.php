@@ -72,7 +72,7 @@ class ControlClient
      *
      * @throws ControlException
      */
-    public function pushFile(int $mediaId, string $sha256, string $mime, string $bytes): string
+    public function pushFile(int $mediaId, string $sha256, string $mime, string $bytes, string $kind = 'preview'): string
     {
         try {
             // Not JSON: a JSON content type would survive into the multipart request.
@@ -82,7 +82,7 @@ class ControlClient
                     'image/webp' => '.webp',
                     default => '.jpg',
                 }, ['Content-Type' => $mime])
-                ->post('sync/files', ['media_id' => (string) $mediaId, 'sha256' => $sha256]);
+                ->post('sync/files', ['media_id' => (string) $mediaId, 'sha256' => $sha256, 'kind' => $kind]);
         } catch (ConnectionException $e) {
             throw ControlException::unreachable($e);
         }
