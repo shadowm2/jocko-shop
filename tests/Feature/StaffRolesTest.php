@@ -77,7 +77,7 @@ it('sets a staff member\'s role from the command line', function () {
 
     $this->artisan('user:role', ['mobile' => $user->mobile, 'role' => 'cashier'])->assertSuccessful();
 
-    expect($user->fresh()->isCashier())->toBeTrue()->and($user->fresh()->hasRole('manager'))->toBeFalse();
+    expect($user->fresh()->hasRole('cashier'))->toBeTrue()->and($user->fresh()->hasRole('manager'))->toBeFalse();
 });
 
 it('refuses an unknown role or a customer', function () {

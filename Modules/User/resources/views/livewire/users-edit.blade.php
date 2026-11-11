@@ -17,5 +17,5 @@
         </flux:button>
     </x-dashboard::edit-actions>
 
-    <x-user::user-form />
+    <x-user::user-form :$user />
 </div>

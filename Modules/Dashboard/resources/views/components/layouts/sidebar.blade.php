@@ -89,7 +89,7 @@
                 >
                     {{ __('dashboard::strings.Dashboard') }}
                 </flux:sidebar.item>
-@unless (auth()->user()?->isCashier())
+@can('reports.view')
                 <flux:sidebar.item
                     icon="chart-bar"
                     :href="route('reports.index')"
@@ -98,7 +98,7 @@
                 >
                     {{ __('dashboard::strings.Reports') }}
                 </flux:sidebar.item>
-@endunless
+@endcan
                 <flux:sidebar.group
                     expandable
                     icon="circle-stack"
@@ -130,7 +130,7 @@
                             {{ __('inventory::strings.Item Create') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
-@unless (auth()->user()?->isCashier())
+@can('purchasing.manage')
                     <flux:sidebar.group
                         expandable
                         icon="truck"
@@ -154,9 +154,9 @@
                             {{ __('inventory::strings.Supplier Add') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
-@endunless
+@endcan
 
-@unless (auth()->user()?->isCashier())
+@can('purchasing.manage')
                     <flux:sidebar.group
                         expandable
                         :heading="__('inventory::strings.Purchases')"
@@ -180,7 +180,7 @@
                             {{ __('inventory::strings.Purchase Add') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
-@endunless
+@endcan
                     @if ($showWarehouseMenu)
                     <flux:sidebar.group
                         expandable
@@ -556,20 +556,27 @@
                     >
                         {{ __('dashboard::strings.Countries') }}
                     </flux:sidebar.item>
-@unless (auth()->user()?->isCashier())
+@can('settings.manage')
                     <flux:sidebar.item icon="signal" :href="route('jocko-control-settings.edit')" :current="request()->routeIs('jocko-control-settings.edit')" wire:navigate>
                         {{ __('dashboard::strings.Jocko Control') }}
                     </flux:sidebar.item>
+@endcan
+@can('settings.manage')
                     <flux:sidebar.item icon="queue-list" :href="route('jocko-control-queue.index')" :current="request()->routeIs('jocko-control-queue.index')" wire:navigate>
                         {{ __('dashboard::strings.Queued Changes') }}
                     </flux:sidebar.item>
+@endcan
+@can('backups.manage')
                     <flux:sidebar.item icon="circle-stack" :href="route('backups.index')" :current="request()->routeIs('backups.*')" wire:navigate>
                         {{ __('dashboard::strings.Backups') }}
                     </flux:sidebar.item>
+@endcan
+@can('settings.manage')
                     <flux:sidebar.item icon="shelving-unit" :href="route('warehouse-settings.edit')" :current="request()->routeIs('warehouse-settings.edit')" wire:navigate>
                         {{ __('dashboard::strings.Warehouse Settings') }}
                     </flux:sidebar.item>
-@endunless
+@endcan
+
                     <flux:sidebar.item
                         icon="map-pin"
                         :href="route('provinces.index')"
@@ -609,7 +616,7 @@
                             {{ __('dashboard::strings.Category Create') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
-@unless (auth()->user()?->isCashier())
+@can('settings.manage')
                     <flux:sidebar.item
                         icon="key"
                         :href="route('system-settings.edit')"
@@ -618,7 +625,12 @@
                     >
                         {{ __('dashboard::strings.System Settings') }}
                     </flux:sidebar.item>
-@endunless
+@endcan
+@can('roles.manage')
+<flux:sidebar.item icon="shield-check" :href="route('roles.index')" :current="request()->routeIs('roles.*')" wire:navigate>
+    {{ __('user::strings.Roles') }}
+</flux:sidebar.item>
+@endcan
                 </flux:sidebar.group>
             </flux:sidebar.group>
 

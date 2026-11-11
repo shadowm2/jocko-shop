@@ -12,7 +12,6 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Modules\User\Database\Factories\UserFactory;
-use Modules\User\Enums\UserRole;
 use Modules\User\Enums\UserType;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -57,12 +56,6 @@ class User extends BaseAuthenticatableModel
             'password' => 'hashed',
             'type' => UserType::class,
         ];
-    }
-
-    /** Cashiers work the counter only; staff without a role keep full access. */
-    public function isCashier(): bool
-    {
-        return $this->hasRole(UserRole::Cashier->value);
     }
 
     /**
