@@ -8,6 +8,7 @@ use Illuminate\Foundation\DevCommands;
 use Modules\Control\Console\HeartbeatCommand;
 use Modules\Control\Console\PollCommand;
 use Modules\Control\Console\PushCommand;
+use Modules\Control\Console\RestoreCommand;
 use Modules\Control\Console\ResyncCommand;
 use Modules\Control\Console\StatusCommand;
 use Modules\Control\Exceptions\ControlException;
@@ -41,6 +42,7 @@ class ControlServiceProvider extends BaseModuleServiceProvider
         PollCommand::class,
         PushCommand::class,
         ResyncCommand::class,
+        RestoreCommand::class,
         StatusCommand::class,
     ];
 
