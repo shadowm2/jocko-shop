@@ -212,3 +212,85 @@ test('a picture too large to decode with the memory available is skipped', funct
 
     expect(collect(Http::recorded())->map(fn (array $pair) => basename($pair[0]->url()))->all())->toBe(['events']);
 });
+
+test('when Jocko Control keeps originals the picture itself is sent, not a preview', function () {
+    mediaControl();
+    resolve(Modules\Control\Services\PictureMode::class)->update('original');
+    $original = pictureBytes(1600, 1200);
+    picture(ownerBrand(), $original);
+
+    resolve(OutboxPusher::class)->push();
+
+    $upload = collect(Http::recorded())->map(fn (array $pair) => $pair[0])->first(fn (Request $request) => str_ends_with($request->url(), '/sync/files'));
+    $file = collect($upload->data())->firstWhere('name', 'file');
+    $fields = collect($upload->data())->pluck('contents', 'name');
+
+    expect($file['contents'])->toBe($original)
+        ->and($fields['sha256'])->toBe(hash('sha256', $original))
+        ->and(getimagesizefromstring($file['contents'])[0])->toBe(1600);
+});
+
+test('an original that is too big is replaced by a preview instead of being dropped', function () {
+    mediaControl();
+    resolve(Modules\Control\Services\PictureMode::class)->update('original');
+    config(['control.files.max_original_bytes' => 1000]);
+    picture(ownerBrand(), pictureBytes(1600, 1200));
+
+    resolve(OutboxPusher::class)->push();
+
+    $upload = collect(Http::recorded())->map(fn (array $pair) => $pair[0])->first(fn (Request $request) => str_ends_with($request->url(), '/sync/files'));
+    $file = collect($upload->data())->firstWhere('name', 'file');
+
+    expect(getimagesizefromstring($file['contents'])[0])->toBe(800);
+});
+
+test('a webp original is sent with its own type', function () {
+    mediaControl();
+    resolve(Modules\Control\Services\PictureMode::class)->update('original');
+    ob_start();
+    imagewebp(imagecreatetruecolor(40, 30));
+    $webp = (string) ob_get_clean();
+    picture(ownerBrand(), $webp, 'photo.webp');
+
+    resolve(OutboxPusher::class)->push();
+
+    $upload = collect(Http::recorded())->map(fn (array $pair) => $pair[0])->first(fn (Request $request) => str_ends_with($request->url(), '/sync/files'));
+    $file = collect($upload->data())->firstWhere('name', 'file');
+
+    expect($file['filename'])->toEndWith('.webp')->and(collect((array) ($file['headers']['Content-Type'] ?? []))->first())->toBe('image/webp');
+});
+
+test('the heartbeat remembers what Jocko Control wants and resends the pictures only when that changes', function () {
+    $answer = fn (string $pictures) => Http::fake(['*/device/heartbeat' => Http::response(['data' => ['received_at' => now()->toIso8601String(), 'last_sync_at' => null, 'pending_commands' => 0, 'pictures' => $pictures]])]);
+    Http::swap(new Factory);
+    picture(ownerBrand(), pictureBytes(40, 30));
+    OutboxEvent::query()->delete();
+
+    // Previews stay previews: nothing to resend.
+    $answer('preview');
+    $this->artisan('control:heartbeat')->assertSuccessful();
+    expect(resolve(Modules\Control\Services\PictureMode::class)->keepsOriginals())->toBeFalse()->and(OutboxEvent::count())->toBe(0);
+
+    // Switched to originals: every picture is queued again.
+    Http::swap(new Factory);
+    $answer('original');
+    $this->artisan('control:heartbeat')->assertSuccessful();
+    expect(resolve(Modules\Control\Services\PictureMode::class)->keepsOriginals())->toBeTrue()
+        ->and(OutboxEvent::where('aggregate_type', 'media')->count())->toBe(1);
+
+    // Still originals: not again.
+    OutboxEvent::query()->delete();
+    Http::swap(new Factory);
+    $answer('original');
+    $this->artisan('control:heartbeat')->assertSuccessful();
+    expect(OutboxEvent::count())->toBe(0);
+});
+
+test('an older Jocko Control that never says keeps getting previews', function () {
+    Http::swap(new Factory);
+    Http::fake(['*/device/heartbeat' => Http::response(['data' => ['received_at' => now()->toIso8601String(), 'last_sync_at' => null, 'pending_commands' => 0]])]);
+
+    $this->artisan('control:heartbeat')->assertSuccessful();
+
+    expect(resolve(Modules\Control\Services\PictureMode::class)->keepsOriginals())->toBeFalse();
+});

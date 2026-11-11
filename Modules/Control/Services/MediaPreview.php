@@ -63,6 +63,34 @@ class MediaPreview
     }
 
     /**
+     * The picture itself, for a Jocko Control that keeps originals. Null when it
+     * cannot be sent as it is (gone, not a type Jocko Control accepts, too big),
+     * so the caller falls back to a preview.
+     *
+     * @return array{bytes: string, mime: string, sha256: string}|null
+     */
+    public function original(Media $media): ?array
+    {
+        try {
+            $bytes = Storage::disk($media->disk)->get($media->path);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (! is_string($bytes) || $bytes === '' || strlen($bytes) > (int) config('control.files.max_original_bytes')) {
+            return null;
+        }
+
+        $info = @getimagesizefromstring($bytes);
+
+        if ($info === false || ! in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return null;
+        }
+
+        return ['bytes' => $bytes, 'mime' => $info['mime'], 'sha256' => hash('sha256', $bytes)];
+    }
+
+    /**
      * Decoding takes about four bytes per pixel, plus a copy while scaling.
      */
     private function fitsInMemory(int $width, int $height): bool

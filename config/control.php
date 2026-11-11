@@ -106,6 +106,8 @@ return [
         'max_dimension' => 800,
         'quality' => 80,
         'max_bytes' => 1_500_000,
+        // The largest original sent when Jocko Control asks for originals (it accepts up to 7 MB).
+        'max_original_bytes' => 7_000_000,
         'max_per_batch' => 25,
     ],
 

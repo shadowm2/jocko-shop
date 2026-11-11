@@ -77,7 +77,11 @@ class ControlClient
         try {
             // Not JSON: a JSON content type would survive into the multipart request.
             $response = $this->http(json: false)
-                ->attach('file', $bytes, $sha256.($mime === 'image/png' ? '.png' : '.jpg'), ['Content-Type' => $mime])
+                ->attach('file', $bytes, $sha256.match ($mime) {
+                    'image/png' => '.png',
+                    'image/webp' => '.webp',
+                    default => '.jpg',
+                }, ['Content-Type' => $mime])
                 ->post('sync/files', ['media_id' => (string) $mediaId, 'sha256' => $sha256]);
         } catch (ConnectionException $e) {
             throw ControlException::unreachable($e);

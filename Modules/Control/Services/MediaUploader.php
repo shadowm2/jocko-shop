@@ -31,6 +31,7 @@ class MediaUploader
     public function __construct(
         private readonly ControlClient $client,
         private readonly MediaPreview $preview,
+        private readonly PictureMode $mode,
     ) {}
 
     /**
@@ -73,7 +74,7 @@ class MediaUploader
                 continue;
             }
 
-            $preview = $this->preview->make($media);
+            $preview = ($this->mode->keepsOriginals() ? $this->preview->original($media) : null) ?? $this->preview->make($media);
 
             if ($preview === null) {
                 continue;
