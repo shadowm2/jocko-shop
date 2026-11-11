@@ -21,6 +21,7 @@ return [
     'Enter user new password' => 'Enter the new password',
     'Enter user new password again' => 'Enter the new password again',
     'Search Roles' => 'Search roles',
+    'Search Staff' => 'Search staff',
     'Roles' => 'Roles',
     'Role' => 'Role',
     'Add Role' => 'Add role',

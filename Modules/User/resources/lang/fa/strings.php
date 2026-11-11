@@ -22,6 +22,7 @@ return [
     'Enter user new password' => 'رمز عبور جدید را وارد کنید',
     'Enter user new password again' => 'رمز عبور جدید را دوباره وارد کنید',
     'Search Roles' => 'جستجوی نقش‌ها',
+    'Search Staff' => 'جستجوی کارکنان',
     'Roles' => 'نقش‌ها',
     'Role' => 'نقش',
     'Add Role' => 'افزودن نقش',

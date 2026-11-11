@@ -476,6 +476,30 @@
                 </flux:sidebar.group>
                 <flux:sidebar.group
                     expandable
+                    icon="identification"
+                    :heading="__('user::strings.Staff')"
+                    class="grid first-level"
+                    :expanded="request()->routeIs(['staff.*', 'roles.*'])"
+                >
+                    <flux:sidebar.item
+                        :href="route('staff.index')"
+                        :current="request()->routeIs('staff.*')"
+                        wire:navigate
+                    >
+                        {{ __('user::strings.Staff') }}
+                    </flux:sidebar.item>
+                    @can('roles.manage')
+                        <flux:sidebar.item
+                            :href="route('roles.index')"
+                            :current="request()->routeIs('roles.*')"
+                            wire:navigate
+                        >
+                            {{ __('user::strings.Roles') }}
+                        </flux:sidebar.item>
+                    @endcan
+                </flux:sidebar.group>
+                <flux:sidebar.group
+                    expandable
                     icon="shopping-bag"
                     :heading="__('order::strings.Orders')"
                     class="grid first-level"
@@ -626,35 +650,12 @@
                         {{ __('dashboard::strings.System Settings') }}
                     </flux:sidebar.item>
 @endcan
-@can('roles.manage')
-<flux:sidebar.item icon="shield-check" :href="route('roles.index')" :current="request()->routeIs('roles.*')" wire:navigate>
-    {{ __('user::strings.Roles') }}
-</flux:sidebar.item>
-@endcan
                 </flux:sidebar.group>
             </flux:sidebar.group>
 
         </flux:sidebar.nav>
 
         <flux:spacer />
-
-        <flux:sidebar.nav>
-            <flux:sidebar.item
-                icon="folder-git-2"
-                href="https://github.com/laravel/livewire-starter-kit"
-                target="_blank"
-            >
-                {{ __('Repository') }}
-            </flux:sidebar.item>
-
-            <flux:sidebar.item
-                icon="book-open-text"
-                href="https://laravel.com/docs/starter-kits#livewire"
-                target="_blank"
-            >
-                {{ __('Documentation') }}
-            </flux:sidebar.item>
-        </flux:sidebar.nav>
 
         <x-dashboard::desktop-user-menu
             class="hidden lg:block"
