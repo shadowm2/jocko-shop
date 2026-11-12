@@ -16,7 +16,27 @@ class PurchaseCreate extends Component
 
     public function mount(): void
     {
+        $this->applyReorderPrefill();
         $this->form->useFixedWarehouse();
+    }
+
+    /**
+     * Lines handed over by the reorder list: the supplier, the warehouse and each
+     * item with the quantity and last price. Taken once, so a reload starts blank.
+     */
+    private function applyReorderPrefill(): void
+    {
+        $prefill = session()->pull('purchase_prefill');
+
+        if (! is_array($prefill) || ! is_array($prefill['lines'] ?? null)) {
+            return;
+        }
+
+        $this->form->warehouse = (string) ($prefill['warehouse'] ?? '');
+        $this->form->supplier = (string) ($prefill['supplier'] ?? '');
+        $this->form->selected = array_keys($prefill['lines']);
+        $this->form->items = $prefill['lines'];
+        $this->form->syncSelectedItems();
     }
 
     public function save(): void
