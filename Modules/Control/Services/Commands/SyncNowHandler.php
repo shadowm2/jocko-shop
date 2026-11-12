@@ -11,7 +11,8 @@ use Modules\Control\Services\OutboxSnapshot;
  * Sends whatever is waiting in the outbox right now instead of at the next
  * scheduled run. With `full`, it first queues a fresh copy of every synchronized
  * record (the same as `control:resync`), for when Jocko Control lost or deleted
- * its copy. Repeating it is harmless.
+ * its copy. With `entities` (entity types) it queues a fresh copy of only
+ * those. Repeating it is harmless.
  */
 class SyncNowHandler implements RemoteCommandHandler
 {
@@ -22,7 +23,8 @@ class SyncNowHandler implements RemoteCommandHandler
 
     public function handle(array $payload): array
     {
-        $queued = ($payload['full'] ?? false) === true ? array_sum($this->snapshot->enqueue()) : 0;
+        $entities = array_values(array_filter((array) ($payload['entities'] ?? []), 'is_string'));
+        $queued = ($payload['full'] ?? false) === true || $entities !== [] ? array_sum($this->snapshot->enqueue($entities)) : 0;
 
         try {
             return ['queued' => $queued] + $this->pusher->push();
