@@ -70,4 +70,38 @@
         type="submit"
         variant="primary"
     >{{ __('dashboard::strings.Save Settings') }}</flux:button>
+
+    <flux:card class="space-y-4" data-restore-card>
+        <div>
+            <flux:heading size="lg">{{ __('dashboard::strings.Restore From Control') }}</flux:heading>
+            <flux:subheading>{{ __('dashboard::strings.Restore From Control Description') }}</flux:subheading>
+        </div>
+
+        @if ($restoreError)
+            <flux:callout variant="danger" icon="exclamation-triangle" data-restore-error>
+                <flux:callout.text>{{ $restoreError }}</flux:callout.text>
+            </flux:callout>
+        @endif
+
+        @if ($restorable !== null)
+            <div class="space-y-1" data-restore-available>
+                @foreach ($restorable as $type => $count)
+                    <div class="flex justify-between text-sm"><span dir="ltr">{{ $type }}</span><span>{{ \App\Helpers\Utils::pDigits((string) $count) }}</span></div>
+                @endforeach
+            </div>
+
+            @if ($existingData !== [])
+                <flux:callout variant="warning" icon="exclamation-triangle" data-restore-existing>
+                    <flux:callout.text>{{ __('dashboard::strings.Restore Existing Data', ['types' => implode(', ', array_keys($existingData))]) }}</flux:callout.text>
+                </flux:callout>
+                <flux:checkbox wire:model.live="restoreOverExisting" :label="__('dashboard::strings.Restore Over Existing')" data-restore-force />
+            @endif
+
+            <flux:text size="sm" class="text-zinc-500">{{ __('dashboard::strings.Restore Not Kept') }}</flux:text>
+
+            <flux:button type="button" variant="danger" icon="arrow-path" wire:click="restore" wire:loading.attr="disabled" wire:target="restore" wire:confirm="{{ __('dashboard::strings.Restore Confirm') }}" data-restore-now>{{ __('dashboard::strings.Restore Now') }}</flux:button>
+        @else
+            <flux:button type="button" icon="cloud-arrow-down" wire:click="checkRestore" wire:loading.attr="disabled" wire:target="checkRestore" data-restore-check>{{ __('dashboard::strings.Check What Control Has') }}</flux:button>
+        @endif
+    </flux:card>
 </form>
