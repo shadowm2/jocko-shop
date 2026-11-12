@@ -45,6 +45,7 @@ return [
     'Enter Country Name' => 'نام کشور را وارد کنید',
     'Save Country' => 'ذخیره کشور',
     'Enter Country Code' => 'کد دو حرفی کشور را وارد کنید (مثال: IR)',
+    'Enter Country Phone Code' => 'پیش‌شماره تلفن را وارد کنید (مثلاً ‎+98)',
     'Enter Country Code3' => 'کد سه حرفی کشور را وارد کنید (مثال: IRN)',
     'Provinces' => 'استان ها',
     'Provinces List' => 'لیست استان ها',

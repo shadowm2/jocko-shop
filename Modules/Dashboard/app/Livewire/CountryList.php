@@ -70,6 +70,9 @@ class CountryList extends Component
                 'label' => __('dashboard::attributes.Country Code3'),
             ],
             [
+                'label' => __('dashboard::attributes.Country Phone Code'),
+            ],
+            [
                 'label' => __('dashboard::attributes.Is Active'),
             ],
             [

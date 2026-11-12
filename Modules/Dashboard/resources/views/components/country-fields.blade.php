@@ -37,6 +37,19 @@
 
 <flux:field>
     <flux:label>
+        {{ __('dashboard::attributes.Country Phone Code') }}
+    </flux:label>
+    <flux:input
+        :placeholder="__('dashboard::strings.Enter Country Phone Code')"
+        maxlength="10"
+        dir="ltr"
+        wire:model="form.phone_code"
+    />
+    <flux:error name="form.phone_code" />
+</flux:field>
+
+<flux:field>
+    <flux:label>
         {{ __('dashboard::attributes.Is Active') }}
     </flux:label>
     <flux:switch wire:model="form.is_active" />

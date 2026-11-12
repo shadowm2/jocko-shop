@@ -11,6 +11,9 @@
         {{ \App\Helpers\Utils::pDigits($row->code3) }}
     </x-table.cell>
     <x-table.cell>
+        <span dir="ltr">{{ \App\Helpers\Utils::pDigits($row->phone_code) }}</span>
+    </x-table.cell>
+    <x-table.cell>
         <flux:switch
             :checked="$row->is_active"
             wire:change="toggleIsActive('{{ $row->code }}')"
