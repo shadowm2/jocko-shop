@@ -510,14 +510,14 @@
                     icon="shopping-bag"
                     :heading="__('order::strings.Orders')"
                     class="grid first-level"
-                    :expanded="request()->routeIs(['orders.*', 'payments.*'])"
+                    :expanded="request()->routeIs(['orders.*', 'quotes.*', 'payments.*'])"
                 >
                     <flux:sidebar.group
                         expandable
                         :heading="__('order::strings.Orders')"
                         class="grid"
                         icon="shopping-cart"
-                        :expanded="request()->routeIs('orders.*')"
+                        :expanded="request()->routeIs(['orders.*', 'quotes.*'])"
                     >
                         <flux:sidebar.item
                             :href="route('orders.index')"
@@ -525,6 +525,13 @@
                             wire:navigate
                         >
                             {{ __('order::strings.Orders') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item
+                            :href="route('quotes.index')"
+                            :current="request()->routeIs('quotes.*')"
+                            wire:navigate
+                        >
+                            {{ __('order::strings.Quotes') }}
                         </flux:sidebar.item>
                     </flux:sidebar.group>
                     <flux:sidebar.group

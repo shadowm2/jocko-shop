@@ -1,5 +1,6 @@
 @php
     $order ??= null;
+    $quotable ??= false;
 @endphp
 
 <form
@@ -28,6 +29,18 @@
         >
             {{ __('order::strings.Save Order') }}
         </flux:button>
+        @if ($quotable)
+            <flux:button
+                type="button"
+                icon="document-text"
+                wire:click="saveQuote"
+                wire:loading.attr="disabled"
+                wire:target="saveQuote"
+                data-save-quote
+            >
+                {{ __('order::strings.Save As Quote') }}
+            </flux:button>
+        @endif
         <flux:button
             variant="ghost"
             href="{{ url()->previous() }}"

@@ -3,5 +3,6 @@
         :$userCars
         :$itemCatalog
         :$users
+        :quotable="true"
     />
 </div>
