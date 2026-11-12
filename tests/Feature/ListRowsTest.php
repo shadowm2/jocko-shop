@@ -41,7 +41,7 @@ it('renders the cells of each list row', function () {
     $color = Color::forceCreate(['name' => 'Crimson', 'slug' => 'crimson', 'hex' => '#dc143c']);
     UserCar::forceCreate(['slug' => 'mine', 'user_id' => $this->user->id, 'car_id' => $car->id, 'color_id' => $color->id]);
 
-    $country = Country::forceCreate(['name' => 'Iran', 'code' => 'IR', 'code3' => 'IRN']);
+    $country = Country::forceCreate(['name' => 'Iran', 'code' => 'IR', 'code3' => 'IRN', 'phone_code' => '+98']);
     $province = Province::forceCreate(['name' => 'Alborz', 'slug' => 'alborz', 'country_id' => $country->id]);
     $city = City::forceCreate(['name' => 'Karaj', 'slug' => 'karaj', 'province_id' => $province->id]);
     $engine = Category::forceCreate(['name' => 'Engine', 'slug' => 'engine', 'type' => CategoryType::Item, 'depth' => 0, 'icon' => 'cog']);
@@ -61,7 +61,7 @@ it('renders the cells of each list row', function () {
         [CompanyList::class, [], ['Saipa', route('companies.edit', ['company' => 'saipa'])]],
         [CategoryList::class, [], ['Pistons', 'Engine', "toggleIsActive('pistons')", route('categories.edit', ['category' => 'pistons'])]],
         [CityList::class, [], ['Karaj', 'Alborz', "toggleIsActive('karaj')", route('cities.edit', ['city' => 'karaj'])]],
-        [CountryList::class, [], ['IRN', "toggleIsActive('IR')", route('countries.edit', ['country' => 'IR'])]],
+        [CountryList::class, [], ['IRN', '+۹۸', "toggleIsActive('IR')", route('countries.edit', ['country' => 'IR'])]],
         [ProvinceList::class, [], ['Alborz', "toggleIsActive('alborz')", route('provinces.edit', ['province' => 'alborz'])]],
         // The address is cut at 45 characters.
         [SupplierList::class, [], ['acme.example', 'Some Very Long Street Name, Tehra...', "toggleIsActive('acme')", route('suppliers.edit', ['supplier' => 'acme'])]],

@@ -13,6 +13,7 @@ return [
     'Country Name' => 'Country name',
     'Country Code' => 'Country code (2 letters)',
     'Country Code3' => 'Country code (3 letters)',
+    'Country Phone Code' => 'Phone code',
     'Is Active' => 'Active',
     'Province Name' => 'Province name',
     'Province Country' => 'Country',

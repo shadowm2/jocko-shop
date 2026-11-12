@@ -44,6 +44,7 @@ return [
     'Enter Country Name' => 'Enter the country name',
     'Save Country' => 'Save country',
     'Enter Country Code' => 'Enter the 2-letter country code (e.g. IR)',
+    'Enter Country Phone Code' => 'Enter the phone code (e.g. +98)',
     'Enter Country Code3' => 'Enter the 3-letter country code (e.g. IRN)',
     'Provinces' => 'Provinces',
     'Provinces List' => 'Provinces list',

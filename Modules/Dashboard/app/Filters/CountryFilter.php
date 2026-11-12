@@ -16,7 +16,8 @@ class CountryFilter extends BaseFilter
             $this->builder->where(function (Builder $query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('code3', 'like', "%{$search}%");
+                    ->orWhere('code3', 'like', "%{$search}%")
+                    ->orWhere('phone_code', 'like', "%{$search}%");
             });
         }
         $this->whereCheckboxes('is_active');

@@ -13,6 +13,7 @@ return [
     'Country Name' => 'نام کشور',
     'Country Code' => 'کد کشور (دو حرفی)',
     'Country Code3' => 'کد کشور (سه حرفی)',
+    'Country Phone Code' => 'پیش‌شماره تلفن',
     'Is Active' => 'فعال',
     'Province Name' => 'نام استان',
     'Province Country' => 'کشور',
