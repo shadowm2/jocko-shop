@@ -291,3 +291,18 @@ it('keeps the page usable and tells how to retry when Control fails halfway', fu
         ->call('restore')
         ->assertSee('data-restore-error', false);
 });
+
+it('asks Control for the summary only once per restore, from the command and from the page', function () {
+    $summaryRequests = fn () => Http::recorded(fn ($request) => str_ends_with($request->url(), '/api/v1/restore'))->count();
+
+    $mirror = mirrorThenLoseTheShopForRestore();
+    fakeRestoreFromControl($mirror);
+    $this->artisan('control:restore', ['--yes' => true])->assertSuccessful();
+    expect($summaryRequests())->toBe(1);
+
+    Http::swap(new Illuminate\Http\Client\Factory);
+    fakeRestoreFromControl($mirror);
+    $this->actingAs(User::factory()->create());
+    Livewire::test(JockoControlSettings::class)->set('restoreOverExisting', true)->call('restore')->assertSet('restoreError', null);
+    expect($summaryRequests())->toBe(1);
+});
