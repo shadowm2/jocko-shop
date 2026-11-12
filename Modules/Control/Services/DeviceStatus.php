@@ -18,7 +18,10 @@ class DeviceStatus
     /** The longest app_version / database_schema_version the API accepts. */
     private const LABEL_LIMIT = 50;
 
-    public function __construct(private readonly ControlLink $link) {}
+    public function __construct(
+        private readonly ControlLink $link,
+        private readonly RecordCounts $counts,
+    ) {}
 
     public function appVersion(): string
     {
@@ -73,18 +76,20 @@ class DeviceStatus
     public function heartbeatPayload(): array
     {
         $databaseOk = $this->databaseOk();
+        $pending = $databaseOk ? $this->pendingEvents() : null;
 
         return array_filter([
             'app_version' => $this->fit($this->appVersion()),
             'database_schema_version' => $this->fit($this->schemaVersion()),
             'local_status' => array_filter([
                 'state' => $databaseOk ? 'idle' : 'error',
-                'pending_events' => $databaseOk ? $this->pendingEvents() : null,
+                'pending_events' => $pending,
                 'oldest_pending_seconds' => $databaseOk ? $this->oldestPendingSeconds() : null,
                 'database_ok' => $databaseOk,
                 'disk_free_mb' => $this->diskFreeMb(),
             ], fn (mixed $value) => $value !== null),
             'sync' => $this->link->pullPushReport(),
+            'record_counts' => $databaseOk ? $this->counts->forHeartbeat($pending) : null,
         ], fn (mixed $value) => $value !== null);
     }
 
