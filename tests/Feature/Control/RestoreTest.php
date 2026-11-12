@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 use Modules\Car\Models\Car;
 use Modules\Car\Models\CarCompany;
 use Modules\Car\Models\Color;
@@ -10,6 +11,7 @@ use Modules\Car\Models\UserCar;
 use Modules\Control\Models\OutboxEvent;
 use Modules\Control\Services\ShopRestorer;
 use Modules\Control\Services\SyncEntities;
+use Modules\Dashboard\Livewire\JockoControlSettings;
 use Modules\Dashboard\Models\Category;
 use Modules\Inventory\Models\Brand;
 use Modules\Inventory\Models\Item;
@@ -210,4 +212,82 @@ it('stops cleanly when Control cannot be reached and can be run again', function
     fakeRestoreFromControl($mirror);
     $this->artisan('control:restore', ['--yes' => true, '--force' => true])->assertSuccessful();
     expect(Brand::count())->toBe(1);
+});
+
+it('restores from the settings page with a button, the same as the command', function () {
+    $mirror = mirrorThenLoseTheShopForRestore();
+    fakeRestoreFromControl($mirror);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(JockoControlSettings::class)
+        ->assertSee('data-restore-check', false)
+        ->assertDontSee('data-restore-now', false)
+        ->call('checkRestore')
+        ->assertSet('restoreError', null)
+        ->assertSee('data-restore-available', false)
+        ->assertSee('data-restore-now', false)
+        ->call('restore')
+        ->assertSet('restorable', null)
+        ->assertSet('restoreError', null);
+
+    expect(Brand::pluck('name')->all())->toBe(['Bosch'])
+        ->and(WarehouseItem::sole()->quantity)->toEqual(10)
+        ->and(Brand::onlyTrashed()->pluck('name')->all())->toBe(['Mann']);
+});
+
+it('tells the page when an administrator has not allowed the restore', function () {
+    fakeRestoreFromControl([], allowed: false);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(JockoControlSettings::class)
+        ->call('checkRestore')
+        ->assertSet('restorable', null)
+        ->assertSet('restoreError', __('dashboard::messages.Restore Not Allowed'))
+        ->assertSee('data-restore-error', false);
+});
+
+it('will not restore over existing data from the page until the box is ticked', function () {
+    $mirror = mirrorThenLoseTheShopForRestore();
+    Brand::create(['slug' => 'existing', 'name' => 'Existing']);
+    fakeRestoreFromControl($mirror);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(JockoControlSettings::class)
+        ->call('checkRestore')
+        ->assertSee('data-restore-existing', false)
+        ->call('restore')
+        ->assertSet('restoreError', __('dashboard::messages.Restore Needs Confirmation'));
+
+    expect(Brand::pluck('name')->all())->toBe(['Existing']);
+
+    Livewire::test(JockoControlSettings::class)
+        ->call('checkRestore')
+        ->set('restoreOverExisting', true)
+        ->call('restore')
+        ->assertSet('restoreError', null);
+
+    expect(Brand::pluck('name')->sort()->values()->all())->toBe(['Bosch', 'Existing']);
+});
+
+it('says so on the page when the shop is not linked to Control', function () {
+    config(['control.url' => null, 'control.token' => null]);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(JockoControlSettings::class)
+        ->call('checkRestore')
+        ->assertSet('restoreError', __('dashboard::messages.Restore Not Configured'));
+});
+
+it('keeps the page usable and tells how to retry when Control fails halfway', function () {
+    $mirror = mirrorThenLoseTheShopForRestore();
+    Http::fake([
+        'control.test/api/v1/restore' => Http::response(['data' => ['entities' => array_map('count', $mirror)]]),
+        'control.test/api/v1/restore/*' => Http::response('boom', 500),
+    ]);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(JockoControlSettings::class)
+        ->call('checkRestore')
+        ->call('restore')
+        ->assertSee('data-restore-error', false);
 });

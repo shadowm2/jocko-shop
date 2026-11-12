@@ -16,4 +16,10 @@ return [
     'Queued Changes Sent' => ':count change(s) sent.',
     'Refused Changes Queued Again' => 'The refused changes are queued again.',
     'Backup Created' => 'Backup created.',
+    'Restore Not Configured' => 'Set the Control server URL and the device token first, then save.',
+    'Restore Not Allowed' => 'Jocko Control has not allowed a restore. Ask an administrator to press "Allow restore" on this shop in Jocko Control, then try again within 24 hours.',
+    'Restore Nothing' => 'Jocko Control has nothing to restore for this shop.',
+    'Restore Needs Confirmation' => 'Tick the box to restore over the data this shop already has.',
+    'Restore Stopped' => 'The restore stopped: :message It is safe to try again.',
+    'Restore Done' => ':count record(s) restored.',
 ];

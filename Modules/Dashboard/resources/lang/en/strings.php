@@ -292,4 +292,12 @@ return [
     'Unknown Cost Hint' => 'Never bought through a purchase, so left out of the profit.',
     'Margin' => 'Margin :percent%',
     'Of Sales' => 'of :amount in sales',
+    'Restore From Control' => 'Restore from Jocko Control',
+    'Restore From Control Description' => 'Rebuild a lost or empty shop from the copy Jocko Control keeps. An administrator must first press "Allow restore" on this shop in Jocko Control; the permission lasts 24 hours.',
+    'Check What Control Has' => 'Check what Control has',
+    'Restore Existing Data' => 'This shop already has data (:types). A restore is meant for an empty shop.',
+    'Restore Over Existing' => 'Restore over the existing data anyway',
+    'Restore Not Kept' => 'Only business data comes back. Passwords (staff sign in with the SMS code), settings and the picture files are not kept in Jocko Control.',
+    'Restore Now' => 'Restore now',
+    'Restore Confirm' => 'Restore this shop from Jocko Control now? This can take a few minutes.',
 ];
