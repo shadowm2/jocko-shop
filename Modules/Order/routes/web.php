@@ -16,6 +16,8 @@ use Modules\Order\Livewire\PaymentCreate;
 use Modules\Order\Livewire\PaymentEdit;
 use Modules\Order\Livewire\PaymentReceipt;
 use Modules\Order\Livewire\PaymentsList;
+use Modules\Order\Livewire\QuotePrint;
+use Modules\Order\Livewire\Quotes;
 use Modules\Order\Livewire\VehicleHistory;
 
 // The customer's browser comes back here from the gateway, signed in to nothing. Some
@@ -33,6 +35,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('/{order}/edit', OrderEdit::class)->name('edit');
         Route::livewire('/{order}/invoice', OrderInvoice::class)->name('invoice');
         Route::livewire('/{order}/pay', OrderPay::class)->name('pay');
+    });
+
+    Route::prefix('quotes')->as('quotes.')->group(function () {
+        Route::livewire('/list', Quotes::class)->name('index');
+        Route::livewire('/{quote}/print', QuotePrint::class)->name('print');
     });
 
     Route::livewire('/users/{user}/cars/{userCar}/history', VehicleHistory::class)->name('users.cars.history');

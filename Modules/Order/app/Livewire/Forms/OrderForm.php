@@ -302,7 +302,12 @@ class OrderForm extends Form
         return $this->order !== null;
     }
 
-    public function save(): Order
+    /**
+     * The form's values, cleaned and validated, as the order service takes them.
+     *
+     * @return array<string, mixed>
+     */
+    public function validatedData(): array
     {
         $this->useFixedWarehouse();
         $this->syncSelectedItems();
@@ -328,6 +333,12 @@ class OrderForm extends Form
             : null;
         $data['services'] ??= [];
 
+        return $data;
+    }
+
+    public function save(): Order
+    {
+        $data = $this->validatedData();
         $orderService = resolve(OrderService::class);
 
         try {
@@ -342,6 +353,23 @@ class OrderForm extends Form
             // Service errors are keyed like the rules above; bind them to this form.
             throw ValidationException::withMessages(Arr::prependKeysWith($e->errors(), 'form.'));
         }
+    }
+
+    /**
+     * Fill the form from a quote being turned into an order (or edited).
+     *
+     * @param  array{user_id: int, user_car_id: int, warehouse: string, description: ?string, items: array<string, array<string, mixed>>, services: array<string, array<string, mixed>>}  $prefill
+     */
+    public function fillFromQuote(array $prefill): void
+    {
+        $this->user_id = $prefill['user_id'];
+        $this->user_car_id = $prefill['user_car_id'];
+        $this->warehouse = $prefill['warehouse'];
+        $this->description = $prefill['description'];
+        $this->selected = array_keys($prefill['items']);
+        $this->items = $prefill['items'];
+        $this->services = $prefill['services'];
+        $this->fillBaseUnits();
     }
 
     /** @return array<string, string> */
