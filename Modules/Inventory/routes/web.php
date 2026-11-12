@@ -13,6 +13,7 @@ use Modules\Inventory\Livewire\Items\ItemList;
 use Modules\Inventory\Livewire\Purchases\PurchaseCreate;
 use Modules\Inventory\Livewire\Purchases\PurchaseEdit;
 use Modules\Inventory\Livewire\Purchases\PurchaseList;
+use Modules\Inventory\Livewire\Purchases\ReorderList;
 use Modules\Inventory\Livewire\StockMovements\StockAdjustmentCreate;
 use Modules\Inventory\Livewire\StockMovements\StockMovementList;
 use Modules\Inventory\Livewire\StockMovements\StockTransferCreate;
@@ -49,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('purchases')->middleware('can:purchasing.manage')->as('purchases.')->group(function () {
         Route::livewire('/list', PurchaseList::class)->name('index');
         Route::livewire('/new', PurchaseCreate::class)->name('create');
+        Route::livewire('/reorder', ReorderList::class)->name('reorder');
         Route::livewire('/{purchase}/edit', PurchaseEdit::class)->name('edit');
     });
 

@@ -179,6 +179,13 @@
                         >
                             {{ __('inventory::strings.Purchase Add') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item
+                            :href="route('purchases.reorder')"
+                            :current="request()->routeIs('purchases.reorder')"
+                            wire:navigate
+                        >
+                            {{ __('inventory::strings.Reorder List') }}
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
 @endcan
                     @if ($showWarehouseMenu)
