@@ -56,7 +56,7 @@ class RestoreCommand extends Command
         }
 
         try {
-            $written = $restorer->restore();
+            $written = $restorer->restore(available: $available);
         } catch (ControlException $e) {
             $this->components->error('The restore stopped: '.$e->getMessage().' It is safe to run it again.');
 

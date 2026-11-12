@@ -64,7 +64,12 @@ class JockoControlSettings extends Component
         $this->askControlWhatItHas($client, $restorer);
     }
 
-    private function askControlWhatItHas(ControlClient $client, ShopRestorer $restorer): void
+    /**
+     * Fills the page state from Control's answer.
+     *
+     * @return array<string, int>|null what Control can give back, or null when it cannot
+     */
+    private function askControlWhatItHas(ControlClient $client, ShopRestorer $restorer): ?array
     {
         $this->restorable = null;
         $this->restoreError = null;
@@ -72,7 +77,7 @@ class JockoControlSettings extends Component
         if (! $client->isConfigured()) {
             $this->restoreError = __('dashboard::messages.Restore Not Configured');
 
-            return;
+            return null;
         }
 
         try {
@@ -80,17 +85,19 @@ class JockoControlSettings extends Component
         } catch (ControlException $e) {
             $this->restoreError = $e->status === 403 ? __('dashboard::messages.Restore Not Allowed') : $e->getMessage();
 
-            return;
+            return null;
         }
 
         if (array_sum($available) === 0) {
             $this->restoreError = __('dashboard::messages.Restore Nothing');
 
-            return;
+            return null;
         }
 
         $this->restorable = $available;
         $this->existingData = $restorer->existingData();
+
+        return $available;
     }
 
     /**
@@ -98,9 +105,9 @@ class JockoControlSettings extends Component
      */
     public function restore(ControlClient $client, ShopRestorer $restorer): void
     {
-        $this->askControlWhatItHas($client, $restorer);
+        $available = $this->askControlWhatItHas($client, $restorer);
 
-        if ($this->restorable === null) {
+        if ($available === null) {
             return;
         }
 
@@ -113,7 +120,7 @@ class JockoControlSettings extends Component
         set_time_limit(0);
 
         try {
-            $written = $restorer->restore();
+            $written = $restorer->restore(available: $available);
         } catch (ControlException $e) {
             $this->restoreError = __('dashboard::messages.Restore Stopped', ['message' => $e->getMessage()]);
 

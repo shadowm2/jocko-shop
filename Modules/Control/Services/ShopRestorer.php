@@ -97,11 +97,12 @@ class ShopRestorer
 
     /**
      * @param  Closure(string, int): void|null  $progress  called with the entity type and records written so far
+     * @param  array<string, int>|null  $available  what available() just returned, so Control is not asked again
      * @return array<string, int> records written per entity type
      *
      * @throws ControlException
      */
-    public function restore(?Closure $progress = null): array
+    public function restore(?Closure $progress = null, ?array $available = null): array
     {
         $written = [];
         $this->pendingRoles = [];
@@ -109,7 +110,7 @@ class ShopRestorer
         Schema::disableForeignKeyConstraints();
 
         try {
-            foreach ($this->available() as $type => $total) {
+            foreach ($available ?? $this->available() as $type => $total) {
                 $class = $this->restorable()[$type];
                 $written[$type] = 0;
                 $after = 0;
